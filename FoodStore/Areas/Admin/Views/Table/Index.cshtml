@@ -1,0 +1,124 @@
+﻿@model IEnumerable<FoodStore.Models.Table>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+}
+@{
+    ViewData["Title"] = "Table";
+}
+<div class="container py-4 px-4 h-100">
+    <div class="table-wrapper w-100 ">
+        <div class="d-flex justify-content-between ">
+            <p> </p>
+            <p class="fw-bold fs-3">Danh sách bàn</p>
+            <div class="table-action d-flex align-items-center gap-2">
+                <a class="btn btn-info" href="/Admin/Table/Add">Thêm bàn</a>
+            </div>
+
+        </div>
+        <div class="table-container">
+            <div class="row">
+                @foreach (var table in Model)
+                {
+                    <div class="col-lg-4 mt-4">
+                        <div class="item-table">
+                            <div class="item-table--img">
+                                @{
+                                @using System.IO;
+
+                                    var filename = "/images/QRTable/" + @table.Id + ".png";
+                                    <img src=@filename width="50%">
+                                }
+                            </div>
+                            <div class="item-table--info">
+                                
+                                    <p class="mb-0">
+                                        Mã bàn : @table.Id
+                                    </p>
+                                    <p class="mb-0">
+                                        Trạng thái:
+                                        @{
+                                            if (@table.Status == 1)
+                                            {
+                                                <span class="fw-bold text-warning">Bận</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="fw-bold text-success">Còn trống</span>
+                                            }
+                                        }
+                                    </p>
+                                
+                                
+                            </div>
+                            <div class="item-table--actions d-flex align-items-center justify-content-center mt-2">
+                                <buton type="buton" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-@table.Id">Xóa</buton>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="modal-@table.Id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Thông báo</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Bạn có chắc chắn muốn xóa bàn này không ?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                    <form action="/Admin/Table/DeleteConfirmed" method="post">
+                                        <input value="@table.Id" name="id" class="d-none">
+                                        <button type="submit" class="btn btn-danger">Đồng ý</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .item-table {
+        height: 300px;
+        border: 1px solid black;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        transition: 0.2s ease-in-out;
+    }
+
+        .item-table:hover .item-table--img i {
+            transform: scale(110%);
+        }
+
+    .item-table--img {
+        height: 60%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s ease-in-out;
+    }
+
+        .item-table--img i {
+            font-size: 48px;
+            color: var(--blue-gradient);
+            transition: 0.2s ease-in-out;
+        }
+
+    .item-table--info {
+        border-top: 1px solid var(--blue-gradient);
+        padding-top: 12px;
+        text-align: center;
+    }
+
+    .table-container .row {
+        height: 550px;
+        overflow-y: scroll;
+    }
+</style>
