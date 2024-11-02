@@ -70,36 +70,6 @@ namespace FoodStore.Areas.Admin.Controllers
             return View(ing);
         }
 
-
-
-        // [HttpPost]
-        // public async Task<IActionResult> Add(IngredientViewModel model)
-        // {
-        //     if (ModelState.IsValid)
-        //     {
-        //         var newIngredient = new Ingredients
-        //         {
-        //             Name = model.Ingredient.Name,
-        //             Image = model.Ingredient.Image,
-        //             Unit = model.Ingredient.Unit,
-        //             Quantity = model.Ingredient.Quantity,
-        //             FoodId = model.Ingredient.FoodId,
-        //             IsDeleted = false
-        //         };
-
-        //         _context.Ingredients.Add(newIngredient);
-        //         await _context.SaveChangesAsync();
-
-        //         return RedirectToAction("Index"); // Refreshes the index page with new data
-        //     }
-
-        //     // If model is invalid, reload page with errors
-        //     model.Foods = await _context.Foods.ToListAsync();
-        //     return View(model);
-        // }
-
-
-
         // GET: Admin/Ingredient/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
@@ -159,18 +129,24 @@ namespace FoodStore.Areas.Admin.Controllers
         }
 
         // POST: Admin/Ingredient/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ingredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
-            if (ingredient != null)
+            var ingredient = await _context.Ingredients.FindAsync(id); // Use FindAsync to get the ingredient
+            if (ingredient != null && !ingredient.IsDeleted) // Check if ingredient exists and is not already deleted
             {
-                ingredient.IsDeleted = true; // Đánh dấu là đã xóa
-                _context.Update(ingredient);
-                await _context.SaveChangesAsync(); // Sử dụng SaveChangesAsync
+                ingredient.IsDeleted = true; // Mark the ingredient as deleted
+                _context.Update(ingredient); // Update the entry in the context
+                await _context.SaveChangesAsync(); // Save changes to the database
             }
-            return RedirectToAction(nameof(Index));
+            else
+            {
+                _logger.LogWarning($"Ingredient with ID {id} not found or already deleted.");
+            }
+
+            return RedirectToAction("Index");
+            //return RedirectToAction(nameof(Index)); // Redirect to Index
         }
     }
 }

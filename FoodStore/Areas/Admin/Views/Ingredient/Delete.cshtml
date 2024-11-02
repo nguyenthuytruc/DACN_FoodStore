@@ -1,5 +1,19 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model FoodStore.Models.Ingredients
+
 @{
+    ViewData["Title"] = "Delete";
+    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
 }
+
+
+<h1>Bạn có muốn xóa @Model.Name?</h1>
+<div>
+    <hr />
+     
+
+    <form asp-action="DeleteConfirmed">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger" style="margin-top: 10px;">Xóa</button>
+        <a asp-action="Index" class="btn btn-info" style="margin-top: 10px;">Trở về</a>
+    </form>
+</div>
