@@ -2,9 +2,8 @@
 using FoodStore.Models;
 using Microsoft.EntityFrameworkCore; // Thêm không gian tên này
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Threading.Tasks;
 using FoodStore.Repositories; // Thêm không gian tên này nếu chưa có
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FoodStore.Areas.Admin.Controllers
 {
@@ -70,8 +69,8 @@ namespace FoodStore.Areas.Admin.Controllers
             return View(ing);
         }
 
-        // GET: Admin/Ingredient/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        // GET: Admin/Ingredient/Update/5
+        public async Task<IActionResult> Update(int id)
         {
             var ingredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
             if (ingredient == null || ingredient.IsDeleted)
@@ -80,14 +79,14 @@ namespace FoodStore.Areas.Admin.Controllers
             }
 
             // Lấy danh sách món ăn để điền vào dropdown trong view Edit
-            ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
+            ViewBag.FoodList = new SelectList(_context.Foods.Where(f => !f.IsDeleted), "Id", "Name");
             return View(ingredient);
         }
 
-        // POST: Admin/Ingredient/Edit/5
+        // POST: Admin/Ingredient/Update/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Ingredients ingredient)
+        public async Task<IActionResult> Update(int id, Ingredients ingredient)
         {
             if (id != ingredient.Id)
             {
@@ -113,7 +112,7 @@ namespace FoodStore.Areas.Admin.Controllers
             }
 
             // Cập nhật lại danh sách món ăn nếu có lỗi
-            ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
+            ViewBag.FoodList = new SelectList(_context.Foods.Where(f => !f.IsDeleted), "Id", "Name");
             return View(ingredient);
         }
 
