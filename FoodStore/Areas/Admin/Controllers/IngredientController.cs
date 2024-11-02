@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using FoodStore.Models;
 using Microsoft.EntityFrameworkCore; // Thêm không gian tên này
+using Microsoft.Extensions.Logging;
 using System.Linq;
-using System.Threading.Tasks; // Thêm không gian tên này nếu chưa có
+using System.Threading.Tasks;
+using FoodStore.Repositories; // Thêm không gian tên này nếu chưa có
 
 namespace FoodStore.Areas.Admin.Controllers
 {
@@ -10,10 +12,14 @@ namespace FoodStore.Areas.Admin.Controllers
     public class IngredientController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<IngredientController> _logger;
+        private readonly IIngredientRepository _ingredientRepository;
 
-        public IngredientController(ApplicationDbContext context)
+        public IngredientController(ApplicationDbContext context, ILogger<IngredientController> logger, IIngredientRepository ingredientRepository)
         {
             _context = context;
+            _logger = logger;
+            _ingredientRepository = ingredientRepository;
         }
 
         // GET: Admin/Ingredient
@@ -27,6 +33,8 @@ namespace FoodStore.Areas.Admin.Controllers
 
         public IActionResult Create()
         {
+            _logger.LogInformation($"///////////// IN public IActionResult Create");
+            Console.WriteLine($"cs///////////// IN public IActionResult Create");
             // Lấy danh sách món ăn từ cơ sở dữ liệu
             ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
             return View("Add"); // Trả về view Add.cshtml
@@ -34,30 +42,62 @@ namespace FoodStore.Areas.Admin.Controllers
 
         // POST: Admin/Ingredient/Create
         [HttpPost]
-        public async Task<IActionResult> Add(IngredientViewModel model)
+        public async Task<IActionResult> Add(Ingredients ing)
         {
-            if (ModelState.IsValid)
-            {
+            _logger.LogInformation("///////////// IN Task<IActionResult> Add(Ingredients ing)");
+            Console.WriteLine($"Is valid: {ModelState.IsValid}");
+            _logger.LogInformation($"Is valid: {ModelState.IsValid}");
+
+            //if (ModelState.IsValid)
+            //{
                 var newIngredient = new Ingredients
                 {
-                    Name = model.Ingredient.Name,
-                    Image = model.Ingredient.Image,
-                    Unit = model.Ingredient.Unit,
-                    Quantity = model.Ingredient.Quantity,
-                    FoodId = model.Ingredient.FoodId,
+                    // Do not set Id here; let it auto-generate
+                    Name = ing.Name,
+                    Image = ing.Image,
+                    Unit = ing.Unit,
+                    Quantity = ing.Quantity,
+                    FoodId = ing.FoodId,
                     IsDeleted = false
                 };
 
-                _context.Ingredients.Add(newIngredient);
-                await _context.SaveChangesAsync();
+                await _ingredientRepository.AddAsync(newIngredient); // Use newIngredient here
+                await _context.SaveChangesAsync(); // Save changes to the database
 
-                return RedirectToAction("Index"); // Refreshes the index page with new data
-            }
+                return RedirectToAction("Index"); // Redirect to Index after adding the ingredient
+            //}
 
-            // If model is invalid, reload page with errors
-            model.Foods = await _context.Foods.ToListAsync();
-            return View(model);
+            //// If the model is invalid, return the view with the errors
+            //ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
+            //return View(ing);
         }
+
+
+        // [HttpPost]
+        // public async Task<IActionResult> Add(IngredientViewModel model)
+        // {
+        //     if (ModelState.IsValid)
+        //     {
+        //         var newIngredient = new Ingredients
+        //         {
+        //             Name = model.Ingredient.Name,
+        //             Image = model.Ingredient.Image,
+        //             Unit = model.Ingredient.Unit,
+        //             Quantity = model.Ingredient.Quantity,
+        //             FoodId = model.Ingredient.FoodId,
+        //             IsDeleted = false
+        //         };
+
+        //         _context.Ingredients.Add(newIngredient);
+        //         await _context.SaveChangesAsync();
+
+        //         return RedirectToAction("Index"); // Refreshes the index page with new data
+        //     }
+
+        //     // If model is invalid, reload page with errors
+        //     model.Foods = await _context.Foods.ToListAsync();
+        //     return View(model);
+        // }
 
 
 
