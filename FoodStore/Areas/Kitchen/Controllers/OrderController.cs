@@ -1,11 +1,12 @@
-﻿using FoodStore.Models;
-using FoodStore.Repositories;
+﻿using System.Collections.Generic;
+using System.Linq; // Thêm vào để sử dụng LINQ
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using FoodStore.Models;
+using FoodStore.Repositories;
 
 namespace FoodStore.Areas.Kitchen.Controllers
 {
@@ -16,144 +17,79 @@ namespace FoodStore.Areas.Kitchen.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IOrderRepository _orderRepository;
         private readonly ITableRepository _tableRepository;
+        private readonly IHubContext<OrderHub> _hubContext;
 
-        public OrderController(ApplicationDbContext context, IOrderRepository orderRepository, ITableRepository tableRepository)
+        public OrderController(ApplicationDbContext context, IOrderRepository orderRepository, ITableRepository tableRepository, IHubContext<OrderHub> hubContext)
         {
             _context = context;
             _orderRepository = orderRepository;
             _tableRepository = tableRepository;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var order = await _orderRepository.GetListOrder();
-            ViewBag.orderList = order;
-            return View(order);
+            var acceptedOrderDetails = await _orderRepository.GetAcceptedOrderDetails();
+
+            // Lọc các món chưa thanh toán hoặc chưa hoàn thành
+            acceptedOrderDetails = acceptedOrderDetails
+                .Where(od => !od.Order.StatusPay || od.Status != 2)
+                .ToList();
+
+            return View(acceptedOrderDetails);
         }
 
+        [HttpGet]
         public async Task<IActionResult> OrderAccepted()
         {
-            var order = await _orderRepository.GetListOrderAccept();
-            ViewBag.orderList = order;
-            return View(order);
+            var orderDetails = await _orderRepository.GetAcceptedOrderDetails();
+
+            // Lọc chỉ lấy những món đã xong
+            var completedOrders = orderDetails.Where(od => od.Status == 2).ToList();
+            return View(completedOrders); // Sửa ở đây
         }
+
 
         [HttpGet]
-        public async Task<IActionResult> Accept(int id)
+        public async Task<IActionResult> GetAllOrderDetails()
         {
-            var order = await _orderRepository.GetOrderById(id);
-            var orderupdate = await _orderRepository.UpdateAsync(id);
-            return RedirectToAction("Index");
+            var orderDetails = await _context.OrderDetails
+                .Include(od => od.Food)
+                .Include(od => od.Order)
+                .Where(od => !od.Order.StatusPay) // Lọc các đơn hàng chưa thanh toán
+                .Where(od => od.Status != 2) // Lọc ra các món ăn chưa hoàn thành
+                .OrderBy(od => od.Order.Created) // Sắp xếp theo thời gian tạo (bỏ qua sắp xếp theo bàn)
+                .ToListAsync();
+
+            return PartialView("_OrderDetailsQueue", orderDetails); // Trả về một partial view
         }
-
-        [HttpGet]
-        [Route("/Kitchen/Order/Detail/{id:int}")]
-        public async Task<IActionResult> Detail(int id)
-        {
-            var order = await _orderRepository.GetOrderById(id);
-            var orderDetail = await _orderRepository.GetListOrderDetailsByIdOrder(id);
-            ViewBag.OrderDetails = orderDetail;
-
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            ViewBag.Id = order.Id;
-            return View(order);
-        }
-
-        public async Task<IActionResult> DetailAccepted(int id)
-        {
-            var order = await _orderRepository.GetOrderById(id);
-            var orderDetail = await _orderRepository.GetListOrderDetailsByIdOrder(id);
-            ViewBag.OrderDetails = orderDetail;
-
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            ViewBag.Id = order.Id;
-            return View(order);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Denied(int id)
-        {
-            await _orderRepository.DeleteAsync(id);
-            return RedirectToAction("Index");
-        }
-
-        // Handle form submit để update trạng thái món ăn
-        // [HttpPost]
-        // public async Task<IActionResult> UpdateOrderDetailsStatus(Dictionary<string, bool> Statuses, int orderId)
-        // {
-        //     foreach (var item in Statuses)
-        //     {
-        //         // Tách OrderId và FoodId từ key
-        //         var keys = item.Key.Split(',');
-        //         int orderDetailOrderId = int.Parse(keys[0]);
-        //         int orderDetailFoodId = int.Parse(keys[1]);
-
-        //         bool isChecked = item.Value;
-
-        //         // Tìm OrderDetail dựa trên OrderId và FoodId
-        //         var orderDetail = await _context.OrderDetails
-        //             .FirstOrDefaultAsync(od => od.OrderId == orderDetailOrderId && od.FoodId == orderDetailFoodId);
-
-        //         if (orderDetail != null)
-        //         {
-        //             // Cập nhật trạng thái dựa trên checkbox
-        //             orderDetail.Status = isChecked ? 1 : 0;
-        //         }
-        //     }
-
-        //     // Lưu các thay đổi
-        //     await _context.SaveChangesAsync();
-
-        //     // Lấy lại chi tiết đơn hàng và trả về View DetailAccepted
-        //     var order = await _orderRepository.GetOrderById(orderId);
-        //     var orderDetails = await _orderRepository.GetListOrderDetailsByIdOrder(orderId);
-        //     ViewBag.OrderDetails = orderDetails;
-
-        //     return View("DetailAccepted", order); // Trả về lại view DetailAccepted
-        // }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateOrderDetailsStatus(Dictionary<string, bool> Statuses, int orderId)
+        public async Task<IActionResult> UpdateOrderDetailStatus(int orderId, int foodId, int status)
         {
-            foreach (var item in Statuses)
+            var orderDetail = await _context.OrderDetails
+                .Include(od => od.Order) // Bao gồm thông tin đơn hàng
+                .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
+
+            if (orderDetail != null)
             {
-                // Tách OrderId và FoodId từ key
-                var keys = item.Key.Split(',');
-                int orderDetailOrderId = int.Parse(keys[0]);
-                int orderDetailFoodId = int.Parse(keys[1]);
+                orderDetail.Status = status; // Cập nhật trạng thái món ăn
 
-                bool isChecked = item.Value;
-
-                // Tìm OrderDetail dựa trên OrderId và FoodId
-                var orderDetail = await _context.OrderDetails
-                    .FirstOrDefaultAsync(od => od.OrderId == orderDetailOrderId && od.FoodId == orderDetailFoodId);
-
-                if (orderDetail != null)
+                // Kiểm tra nếu món ăn đã xong và đơn hàng đã thanh toán
+                if (status == 2 && orderDetail.Order.StatusPay) // 2 là trạng thái "Đã xong"
                 {
-                    // Cập nhật trạng thái dựa trên checkbox
-                    orderDetail.Status = isChecked ? 1 : 0;
+                    // Di chuyển món ăn vào danh sách "Đơn hàng đã đặt"
+                    _context.OrderDetails.Remove(orderDetail); // Xóa món ăn khỏi danh sách đang chờ xử lý
                 }
+
+                await _context.SaveChangesAsync();
+
+                // Gửi thông báo tới tất cả client để cập nhật danh sách món ăn
+                await _hubContext.Clients.All.SendAsync("ReceiveOrderUpdate");
             }
 
-            // Lưu các thay đổi
-            await _context.SaveChangesAsync();
-
-            // Lấy lại chi tiết đơn hàng và trả về View DetailAccepted
-            var order = await _orderRepository.GetOrderById(orderId);
-            var orderDetails = await _orderRepository.GetListOrderDetailsByIdOrder(orderId);
-            ViewBag.OrderDetails = orderDetails;
-
-            return View("DetailAccepted", order); // Trả về lại view DetailAccepted
+            return RedirectToAction("Index"); // Hoặc chuyển tới một trang khác nếu cần
         }
-
     }
 }
