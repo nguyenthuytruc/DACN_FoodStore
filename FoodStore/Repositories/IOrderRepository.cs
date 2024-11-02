@@ -14,5 +14,6 @@ namespace FoodStore.Repositories
         public Task<Order> GetOrderAcceptedById(int id, bool incluDeleted = false);
         public Task<List<Order>> GetListOrderAccept( bool incluDeleted = false);
         public Task<Order> GetOrderPaidAsync(int idTable, bool incluDeleted = false);
+        Task<List<OrderDetail>> GetAcceptedOrderDetails();
     }
 }
