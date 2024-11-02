@@ -45,14 +45,12 @@ namespace FoodStore.Areas.Admin.Controllers
         public async Task<IActionResult> Add(Ingredients ing)
         {
             _logger.LogInformation("///////////// IN Task<IActionResult> Add(Ingredients ing)");
-            Console.WriteLine($"Is valid: {ModelState.IsValid}");
             _logger.LogInformation($"Is valid: {ModelState.IsValid}");
 
-            //if (ModelState.IsValid)
-            //{
+            if (ModelState.IsValid)
+            {
                 var newIngredient = new Ingredients
                 {
-                    // Do not set Id here; let it auto-generate
                     Name = ing.Name,
                     Image = ing.Image,
                     Unit = ing.Unit,
@@ -61,16 +59,17 @@ namespace FoodStore.Areas.Admin.Controllers
                     IsDeleted = false
                 };
 
-                await _ingredientRepository.AddAsync(newIngredient); // Use newIngredient here
-                await _context.SaveChangesAsync(); // Save changes to the database
+                await _ingredientRepository.AddAsync(newIngredient);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index");
+            }
 
-                return RedirectToAction("Index"); // Redirect to Index after adding the ingredient
-            //}
-
-            //// If the model is invalid, return the view with the errors
-            //ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
-            //return View(ing);
+            // If model is invalid, add a custom error message
+            ModelState.AddModelError(string.Empty, "Thông tin nhập vào không hợp lệ. Vui lòng kiểm tra lại.");
+            ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
+            return View(ing);
         }
+
 
 
         // [HttpPost]

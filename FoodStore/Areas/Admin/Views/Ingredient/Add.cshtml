@@ -1,6 +1,8 @@
 ﻿@model FoodStore.Models.Ingredients
 
 <form asp-action="Add">
+    <div asp-validation-summary="All" class="text-danger"></div> <!-- Display all validation errors -->
+
     <div class="form-group">
         <label asp-for="Name" class="control-label"></label>
         <input asp-for="Name" class="form-control" />
