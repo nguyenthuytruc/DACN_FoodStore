@@ -1,0 +1,76 @@
+﻿@model IEnumerable<FoodStore.Models.Ingredients>
+@{
+    ViewBag.Title = "Danh sách nguyên liệu";
+    var foodList = ViewBag.FoodList as List<FoodStore.Models.Food>; // Ép kiểu danh sách món ăn
+}
+
+<h2>Danh sách nguyên liệu</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>STT</th>
+            <th>Tên nguyên liệu</th>
+            <th>Hình ảnh</th>
+            <th>Đơn vị</th>
+            <th>Số lượng</th>
+            <th>Thuộc món ăn</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            int stt = 1; // Biến để đếm số thứ tự
+            foreach (var ingredient in Model)
+            {
+                // Tìm tên món ăn dựa trên FoodId
+                var foodName = foodList?.FirstOrDefault(f => f.Id == ingredient.FoodId)?.Name ?? "Không xác định";
+
+                <tr>
+                    <td>@stt</td>
+                    <td>@ingredient.Name</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(ingredient.Image))
+                        {
+                            <img src="@Url.Content("~/" + ingredient.Image)" alt="@ingredient.Name" style="width:50px; height:50px;" />
+                        }
+                        else
+                        {
+                            <span>Không có hình ảnh</span>
+                        }
+                    </td>
+                    <td>@ingredient.Unit</td>
+                    <td>@ingredient.Quantity</td>
+                    <td>@foodName</td>
+                    <td>
+                        @if (ingredient.IsDeleted)
+                        {
+                            <span class="text-danger">Đã xóa</span>
+                        }
+                        else
+                        {
+                            <span class="text-success">Còn lại</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="@Url.Action("Edit", "Ingredient", new { id = ingredient.Id })" class="btn btn-primary">Chỉnh sửa</a>
+                        <a href="@Url.Action("Delete", "Ingredient", new { id = ingredient.Id })" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa nguyên liệu này?');">Xóa</a>
+                    </td>
+                </tr>
+                stt++; // Tăng số thứ tự
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="8" class="text-center">Không có nguyên liệu nào.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    <a href="@Url.Action("Create", "Ingredient")" class="btn btn-success">Thêm nguyên liệu mới</a>
+</div>
