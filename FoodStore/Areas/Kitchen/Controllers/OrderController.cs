@@ -32,7 +32,7 @@ namespace FoodStore.Areas.Kitchen.Controllers
 
             // Filter for items that are either unpaid or not yet completed
             acceptedOrderDetails = acceptedOrderDetails
-                .Where(od => !od.Order.StatusPay && od.Status != 2)
+                .Where(od => !od.Order.StatusPay && od.Status < 2)
                 .ToList();
 
             return View(acceptedOrderDetails);
@@ -47,7 +47,7 @@ namespace FoodStore.Areas.Kitchen.Controllers
                 .Where(od => !od.Order.StatusPay && od.Status == 2)
                 .ToList();
 
-            return View(acceptedOrderDetails);
+            return View("OrderAccepted", acceptedOrderDetails);
         }
 
 
