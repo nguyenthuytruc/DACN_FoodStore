@@ -17,14 +17,12 @@ namespace FoodStore.Areas.Kitchen.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IOrderRepository _orderRepository;
         private readonly ITableRepository _tableRepository;
-        private readonly IHubContext<OrderHub> _hubContext;
 
-        public OrderController(ApplicationDbContext context, IOrderRepository orderRepository, ITableRepository tableRepository, IHubContext<OrderHub> hubContext)
+        public OrderController(ApplicationDbContext context, IOrderRepository orderRepository, ITableRepository tableRepository)
         {
             _context = context;
             _orderRepository = orderRepository;
             _tableRepository = tableRepository;
-            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -32,22 +30,30 @@ namespace FoodStore.Areas.Kitchen.Controllers
         {
             var acceptedOrderDetails = await _orderRepository.GetAcceptedOrderDetails();
 
-            // Lọc các món chưa thanh toán hoặc chưa hoàn thành
+            // Filter for items that are either unpaid or not yet completed
             acceptedOrderDetails = acceptedOrderDetails
-                .Where(od => !od.Order.StatusPay || od.Status != 2)
+                .Where(od => !od.Order.StatusPay && od.Status != 2)
                 .ToList();
 
             return View(acceptedOrderDetails);
         }
 
-        [HttpGet]
+
+        //[HttpGet]
+        //public async Task<IActionResult> OrderAccepted()
+        //{
+        //    var orderDetails = await _orderRepository.GetAcceptedOrderDetails();
+
+        //    // Lọc chỉ lấy những món đã xong
+        //    var completedOrders = orderDetails.Where(od => od.Status == 2).ToList();
+        //    return View(completedOrders); // Sửa ở đây
+        //}
+
         public async Task<IActionResult> OrderAccepted()
         {
-            var orderDetails = await _orderRepository.GetAcceptedOrderDetails();
-
-            // Lọc chỉ lấy những món đã xong
-            var completedOrders = orderDetails.Where(od => od.Status == 2).ToList();
-            return View(completedOrders); // Sửa ở đây
+            var order = await _orderRepository.GetListOrderAccept();
+            ViewBag.orderList = order;
+            return View(order);
         }
 
 
@@ -63,6 +69,20 @@ namespace FoodStore.Areas.Kitchen.Controllers
                 .ToListAsync();
 
             return PartialView("_OrderDetailsQueue", orderDetails); // Trả về một partial view
+        }
+
+        public async Task<IActionResult> DetailAccepted(int id)
+        {
+            var order = await _orderRepository.GetOrderById(id);
+            var orderDetail = await _orderRepository.GetListOrderDetailsByIdOrder(id);
+            ViewBag.OrderDetails = orderDetail;
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Id = order.Id;
+            return View(order);
         }
 
         [HttpPost]
@@ -85,8 +105,8 @@ namespace FoodStore.Areas.Kitchen.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Gửi thông báo tới tất cả client để cập nhật danh sách món ăn
-                await _hubContext.Clients.All.SendAsync("ReceiveOrderUpdate");
+                //// Gửi thông báo tới tất cả client để cập nhật danh sách món ăn
+                //await _hubContext.Clients.All.SendAsync("ReceiveOrderUpdate");
             }
 
             return RedirectToAction("Index"); // Hoặc chuyển tới một trang khác nếu cần
