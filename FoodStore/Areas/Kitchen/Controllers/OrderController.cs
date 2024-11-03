@@ -39,21 +39,15 @@ namespace FoodStore.Areas.Kitchen.Controllers
         }
 
 
-        //[HttpGet]
-        //public async Task<IActionResult> OrderAccepted()
-        //{
-        //    var orderDetails = await _orderRepository.GetAcceptedOrderDetails();
-
-        //    // Lọc chỉ lấy những món đã xong
-        //    var completedOrders = orderDetails.Where(od => od.Status == 2).ToList();
-        //    return View(completedOrders); // Sửa ở đây
-        //}
-
         public async Task<IActionResult> OrderAccepted()
         {
-            var order = await _orderRepository.GetListOrderAccept();
-            ViewBag.orderList = order;
-            return View(order);
+            var acceptedOrderDetails = await _orderRepository.GetAcceptedOrderDetails();
+
+            acceptedOrderDetails = acceptedOrderDetails
+                .Where(od => !od.Order.StatusPay && od.Status == 2)
+                .ToList();
+
+            return View(acceptedOrderDetails);
         }
 
 
@@ -92,24 +86,28 @@ namespace FoodStore.Areas.Kitchen.Controllers
                 .Include(od => od.Order) // Bao gồm thông tin đơn hàng
                 .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
 
-            if (orderDetail != null)
-            {
+            if (orderDetail != null){
                 orderDetail.Status = status; // Cập nhật trạng thái món ăn
 
-                // Kiểm tra nếu món ăn đã xong và đơn hàng đã thanh toán
-                if (status == 2 && orderDetail.Order.StatusPay) // 2 là trạng thái "Đã xong"
-                {
-                    // Di chuyển món ăn vào danh sách "Đơn hàng đã đặt"
-                    _context.OrderDetails.Remove(orderDetail); // Xóa món ăn khỏi danh sách đang chờ xử lý
-                }
-
                 await _context.SaveChangesAsync();
-
-                //// Gửi thông báo tới tất cả client để cập nhật danh sách món ăn
-                //await _hubContext.Clients.All.SendAsync("ReceiveOrderUpdate");
             }
 
             return RedirectToAction("Index"); // Hoặc chuyển tới một trang khác nếu cần
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MoveToDelivered(int orderId, int foodId, int status)
+        {
+            var orderDetail = await _context.OrderDetails
+                .Include(od => od.Order) // Bao gồm thông tin đơn hàng
+                .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
+
+            if (orderDetail != null){
+                orderDetail.Status = status; // Cập nhật trạng thái món ăn
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("OrderAccepted"); // Hoặc chuyển tới một trang khác nếu cần
         }
     }
 }
