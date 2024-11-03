@@ -14,7 +14,6 @@
             <th>Hình ảnh</th>
             <th>Đơn vị</th>
             <th>Số lượng</th>
-            <th>Thuộc món ăn</th>
             <th>Trạng thái</th>
             <th>Hành động</th>
         </tr>
@@ -25,9 +24,6 @@
             int stt = 1; // Biến để đếm số thứ tự
             foreach (var ingredient in Model)
             {
-                // Tìm tên món ăn dựa trên FoodId
-                var foodName = foodList?.FirstOrDefault(f => f.Id == ingredient.FoodId)?.Name ?? "Không xác định";
-
                 <tr>
                     <td>@stt</td>
                     <td>@ingredient.Name</td>
@@ -43,7 +39,6 @@
                     </td>
                     <td>@ingredient.Unit</td>
                     <td>@ingredient.Quantity</td>
-                    <td>@foodName</td>
                     <td>
                         @if (ingredient.IsDeleted)
                         {

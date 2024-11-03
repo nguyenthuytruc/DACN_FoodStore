@@ -54,7 +54,6 @@ namespace FoodStore.Areas.Admin.Controllers
                     Image = ing.Image,
                     Unit = ing.Unit,
                     Quantity = ing.Quantity,
-                    FoodId = ing.FoodId,
                     IsDeleted = false
                 };
 
@@ -100,7 +99,6 @@ namespace FoodStore.Areas.Admin.Controllers
                 {
                     existingIngredient.Name = ingredient.Name;
                     existingIngredient.Image = ingredient.Image;
-                    existingIngredient.FoodId = ingredient.FoodId; // Sửa từ FoodCategoryId thành FoodId
                     existingIngredient.Quantity = ingredient.Quantity;
                     existingIngredient.Unit = ingredient.Unit;
 
