@@ -77,6 +77,7 @@ namespace FoodStore.Areas.Employee.Controllers
             ViewBag.Id = order.Id;
             return View(order);
         }
+
         [HttpGet]
         public async Task<IActionResult> Denied(int id)
         {

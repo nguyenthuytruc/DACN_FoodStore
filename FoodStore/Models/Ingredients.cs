@@ -13,8 +13,6 @@ namespace FoodStore.Models
 
         public string? Image { get; set; } // Nullable - image of ingredient
 
-        public int? FoodId { get; set; } // Nullable - foreign key to Foods table
-
         [Required(ErrorMessage = "Số lượng còn lại là bắt buộc.")]
         [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0.")]
         public int Quantity { get; set; } // Required
