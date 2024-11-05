@@ -4,6 +4,7 @@ using FoodStore.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoodStore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241101053517_AddIngredient")]
+    partial class AddIngredient
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,7 +137,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("FoodCategoryId");
 
-                    b.ToTable("Foods", (string)null);
+                    b.ToTable("Foods");
                 });
 
             modelBuilder.Entity("FoodStore.Models.FoodCategory", b =>
@@ -155,7 +158,7 @@ namespace FoodStore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FoodCategories", (string)null);
+                    b.ToTable("FoodCategories");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Ingredient", b =>
@@ -187,7 +190,7 @@ namespace FoodStore.Migrations
 
                     b.HasKey("ID");
 
-                    b.ToTable("Ingredients", (string)null);
+                    b.ToTable("Ingredients");
                 });
 
             modelBuilder.Entity("FoodStore.Models.IngredientDetail", b =>
@@ -216,7 +219,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("IngredientID");
 
-                    b.ToTable("IngredientDetails", (string)null);
+                    b.ToTable("IngredientDetails");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Invoice", b =>
@@ -257,7 +260,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("Invoices", (string)null);
+                    b.ToTable("Invoices");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Order", b =>
@@ -287,7 +290,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("TableId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("FoodStore.Models.OrderDetail", b =>
@@ -308,7 +311,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderDetails", (string)null);
+                    b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Payment", b =>
@@ -325,7 +328,7 @@ namespace FoodStore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Table", b =>
@@ -341,7 +344,7 @@ namespace FoodStore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tables", (string)null);
+                    b.ToTable("Tables");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

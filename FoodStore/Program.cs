@@ -34,6 +34,8 @@ builder.Services.AddScoped<IOrderRepository, EFOrderRepository>();
 builder.Services.AddScoped<IOrderDetailRepository, EFOrderDetailRepository>();
 builder.Services.AddScoped<IPaymentRepository, EFPaymentRepository>();
 builder.Services.AddScoped<ITableRepository, EFTableRepository>();
+builder.Services.AddScoped<IIngredientRepository, EFIngredientRepository>();
+builder.Services.AddScoped<IFoodIngredientRepository, EFFoodIngredientRepository>();
 
 builder.Services.AddSession(options =>
 {

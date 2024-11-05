@@ -45,11 +45,11 @@ namespace FoodStore.Repositories
             }
         }
 
-        public async Task<List<Order>> GetListOrder( bool incluDeleted = false)
+        public async Task<List<Order>> GetListOrder(bool incluDeleted = false)
         {
             try
             {
-                var order = await _context.Orders.Where(obj => obj.Status == false   && obj.StatusPay == false).ToListAsync();
+                var order = await _context.Orders.Where(obj => obj.Status == false && obj.StatusPay == false).ToListAsync();
                 return order.ToList();
             }
             catch (Exception ex)
@@ -70,9 +70,8 @@ namespace FoodStore.Repositories
             return orderDetails.ToList();
         }
 
-        public async Task<Order> GetOrderPaidAsync( int idTable, bool incluDeleted = false)
+        public async Task<Order> GetOrderPaidAsync(int idTable, bool incluDeleted = false)
         {
-
             var order = await _context.Orders.FirstOrDefaultAsync(obj => obj.TableId == idTable && obj.StatusPay == true);
             return order;
         }
@@ -83,7 +82,7 @@ namespace FoodStore.Repositories
             {
                 return null;
             }
-            var order = await _context.Orders.FirstOrDefaultAsync(obj => obj.Id == id  );
+            var order = await _context.Orders.FirstOrDefaultAsync(obj => obj.Id == id);
             order.StatusPay = true;
             return order;
         }
@@ -100,7 +99,7 @@ namespace FoodStore.Repositories
 
         public async Task<Order> UpdateAsync(int id, bool incluDeleted = false)
         {
-            var orderUpdate = await _context.Orders.FirstOrDefaultAsync(obj => obj.Id == id   && obj.Status == false);
+            var orderUpdate = await _context.Orders.FirstOrDefaultAsync(obj => obj.Id == id && obj.Status == false);
             var tableUpdate = await _context.Tables.FirstOrDefaultAsync(obj => obj.Id == orderUpdate.TableId && obj.Status == 0);
             if (orderUpdate != null && tableUpdate != null)
             {
@@ -114,7 +113,7 @@ namespace FoodStore.Repositories
 
         public async Task<Order> UpdatePayAsync(int id, bool incluDeleted = false)
         {
-            var orderUpdate = await _context.Orders.FirstOrDefaultAsync(obj => obj.Id == id  && obj.Status == true);
+            var orderUpdate = await _context.Orders.FirstOrDefaultAsync(obj => obj.Id == id && obj.Status == true);
             if (orderUpdate != null)
             {
                 orderUpdate.StatusPay = true;
@@ -123,6 +122,16 @@ namespace FoodStore.Repositories
             }
             return null;
         }
+
+        public async Task<List<OrderDetail>> GetAcceptedOrderDetails() // Phương thức đã thêm
+        {
+            return await _context.OrderDetails
+                .Include(od => od.Food)
+                .Include(od => od.Order)
+                .Where(od => od.Order.Status == true) // Chỉ lấy các món trong đơn hàng đã tiếp nhận
+                .ToListAsync();
+        }
+    
 
         public Task<List<Order>> GetListOrder(List<int> idStore, bool incluDeleted = false)
         {
