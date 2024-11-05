@@ -1,11 +1,19 @@
-import './assets/main.css'
+import "./assets/main.css";
 
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import axios from "axios";
 
-const app = createApp(App)
+// Cấu hình axios mặc định
+axios.defaults.baseURL = "https://your-api-url.com";
+axios.defaults.headers.common["Authorization"] = "Bearer token";
+axios.defaults.headers.post["Content-Type"] = "application/json";
 
-app.use(router)
+const app = createApp(App);
 
-app.mount('#app')
+app.config.globalProperties.$axios = axios;
+
+app.use(router);
+
+app.mount("#app");

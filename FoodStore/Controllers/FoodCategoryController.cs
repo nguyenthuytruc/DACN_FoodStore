@@ -1,87 +1,88 @@
-﻿using FoodStore.Models;
+﻿using AutoMapper;
+using FoodStore.DTO;
+using FoodStore.Models;
 using FoodStore.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace FoodStore.Controllers
 {
-    public class FoodCategoryController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class FoodCategoryController : ControllerBase
     {
-
         private readonly IFoodRepository _foodRepository;
         private readonly IFoodCategoryRepository _foodcategoryRepository;
-        public FoodCategoryController(IFoodRepository foodRepository, IFoodCategoryRepository
-        foodcategoryRepository)
+        private readonly IMapper _mapper;
+
+        public FoodCategoryController(IFoodRepository foodRepository, IFoodCategoryRepository foodcategoryRepository, IMapper mapper)
         {
             _foodRepository = foodRepository;
             _foodcategoryRepository = foodcategoryRepository;
+            _mapper = mapper;
         }
-        public async Task<IActionResult> Index()
+
+        // GET: api/FoodCategory
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<FoodCategory>>> GetAllCategories()
         {
-            var foodCategories = await _foodcategoryRepository.GetAllAsync();
-            return View(foodCategories);
+            var categories = await _foodcategoryRepository.GetAllAsync();
+            // map từ food sang foodDTO
+            return Ok(_mapper.Map<List<FoodCategoryDTO>>(categories));
         }
-        public async Task<IActionResult> Display(int id)
+        // GET: api/FoodCategory/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCategoryById(int id)
         {
-            var foodcategory = await _foodcategoryRepository.GetByIdAsync(id);
-            if (foodcategory == null)
+            var foodCategory = await _foodcategoryRepository.GetByIdAsync(id);
+            if (foodCategory == null)
             {
                 return NotFound();
             }
-            return View(foodcategory);
+            return Ok(foodCategory);
         }
-        public IActionResult Add()
-        {
-            return View();
-        }
+
+        // POST: api/FoodCategory
         [HttpPost]
-        public async Task<IActionResult> Add(FoodCategory foodcategory)
+        public async Task<IActionResult> CreateCategory(FoodCategory foodCategory)
         {
             if (ModelState.IsValid)
             {
-                _foodcategoryRepository.AddAsync(foodcategory);
-                return RedirectToAction(nameof(Index));
+                await _foodcategoryRepository.AddAsync(foodCategory);
+                return CreatedAtAction(nameof(GetCategoryById), new { id = foodCategory.Id }, foodCategory);
             }
-            return View(foodcategory);
+            return BadRequest(ModelState);
         }
-        public async Task<IActionResult> Update(int id)
+
+        // PUT: api/FoodCategory/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategory(int id, FoodCategory foodCategory)
         {
-            var foodcategory = await _foodcategoryRepository.GetByIdAsync(id);
-            if (foodcategory == null)
+            if (id != foodCategory.Id)
             {
-                return NotFound();
+                return BadRequest("ID in URL does not match ID in model.");
             }
-            return View(foodcategory);
-        }
-        [HttpPost]
-        public async Task<IActionResult> Update(int id, FoodCategory foodcategory)
-        {
-            if (id != foodcategory.Id)
-            {
-                return NotFound();
-            }
+
             if (ModelState.IsValid)
             {
-                _foodcategoryRepository.UpdateAsync(foodcategory);
-                return RedirectToAction(nameof(Index));
+                await _foodcategoryRepository.UpdateAsync(foodCategory);
+                return NoContent();
             }
-            return View(foodcategory);
+            return BadRequest(ModelState);
         }
-        public async Task<IActionResult> Delete(int id)
+
+        // DELETE: api/FoodCategory/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
         {
-            var foodcategory = await _foodcategoryRepository.GetByIdAsync(id);
-            if (foodcategory == null)
+            var foodCategory = await _foodcategoryRepository.GetByIdAsync(id);
+            if (foodCategory == null)
             {
                 return NotFound();
             }
-            return View(foodcategory);
-        }
 
-
-        [HttpPost, ActionName("DeleteConfirmed")]
-        public async Task<IActionResult> DeleteConfirm(int id)
-        {
             await _foodcategoryRepository.DeleteAsync(id);
-            return RedirectToAction("Index");
+            return NoContent();
         }
     }
 }
