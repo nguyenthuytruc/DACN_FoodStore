@@ -20,6 +20,11 @@ namespace FoodStore.Repositories
         {
             return await _context.Foods.Include("FoodCategorys").FirstOrDefaultAsync(p => p.Id == id);
         }
+
+        public async Task<IEnumerable<Food>> GetListFoodByIdAsync(int idCategory)
+        {
+            return await _context.Foods.Include("FoodCategorys").Where(f => f.FoodCategoryId == idCategory).ToListAsync();
+        }
         public async Task AddAsync(Food food)
         {
             _context.Foods.Add(food);

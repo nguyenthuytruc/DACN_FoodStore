@@ -176,7 +176,7 @@ namespace FoodStore.Areas.Customer.Controllers
                 Order order = new Order();
                 order.TableId = idTable;
                
-               order.TotalPrice = (double) cart.Items.Sum(i => i.Price * i.Quantity);
+                order.TotalPrice = (double) cart.Items.Sum(i => i.Price * i.Quantity);
                 order.Status = false;
                 order.OrderDetails = cart.Items.Select(i => new OrderDetail
                 {

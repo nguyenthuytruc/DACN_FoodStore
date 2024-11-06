@@ -3,6 +3,7 @@ using FoodStore.DTO;
 using FoodStore.Models;
 using FoodStore.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace FoodStore.Controllers
 {
@@ -39,7 +40,19 @@ namespace FoodStore.Controllers
             {
                 return NotFound();
             }
-            return Ok(food);
+            return Ok(_mapper.Map<FoodDTO>(food));
+        }
+
+        // Get list food by id category
+        [HttpGet("category/{id}")]
+        public async Task<ActionResult<Food>> GetListFoodByCategory(int id)
+        {
+            var food = await _foodRepository.GetListFoodByIdAsync(id);
+            if (food == null)
+            {
+                return NotFound();
+            }
+            return Ok(_mapper.Map<List<FoodDTO>> (food));
         }
 
         // Add a new food
