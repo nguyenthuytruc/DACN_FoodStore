@@ -17,14 +17,14 @@ namespace FoodStore.Areas.Kitchen.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IOrderRepository _orderRepository;
         private readonly ITableRepository _tableRepository;
-        private readonly IHubContext<OrderHub> _hubContext;
+       /* private readonly IHubContext<OrderHub> _hubContext;*/
 
-        public OrderController(ApplicationDbContext context, IOrderRepository orderRepository, ITableRepository tableRepository, IHubContext<OrderHub> hubContext)
+        public OrderController(ApplicationDbContext context, IOrderRepository orderRepository, ITableRepository tableRepository)
         {
             _context = context;
             _orderRepository = orderRepository;
             _tableRepository = tableRepository;
-            _hubContext = hubContext;
+            /*_hubContext = hubContext;*/
         }
 
         [HttpGet]
@@ -48,6 +48,8 @@ namespace FoodStore.Areas.Kitchen.Controllers
             // Lọc chỉ lấy những món đã xong
             var completedOrders = orderDetails.Where(od => od.Status == 2).ToList();
             return View(completedOrders); // Sửa ở đây
+
+            
         }
 
 
@@ -85,8 +87,8 @@ namespace FoodStore.Areas.Kitchen.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Gửi thông báo tới tất cả client để cập nhật danh sách món ăn
-                await _hubContext.Clients.All.SendAsync("ReceiveOrderUpdate");
+               /* // Gửi thông báo tới tất cả client để cập nhật danh sách món ăn
+                await _hubContext.Clients.All.SendAsync("ReceiveOrderUpdate");*/
             }
 
             return RedirectToAction("Index"); // Hoặc chuyển tới một trang khác nếu cần

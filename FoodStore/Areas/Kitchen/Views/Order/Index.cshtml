@@ -1,8 +1,8 @@
 ﻿@model List<FoodStore.Models.OrderDetail>
-@using Microsoft.AspNetCore.SignalR
-@inject IHubContext<OrderHub> OrderHub
+@* @using Microsoft.AspNetCore.SignalR
+@inject IHubContext<OrderHub> OrderHub *@
 
-@section Scripts {
+@* @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
     <script type="text/javascript">
         const connection = new signalR.HubConnectionBuilder()
@@ -16,7 +16,7 @@
 
         connection.start().catch(err => console.error(err.toString()));
     </script>
-}
+} *@
 
 <div class="container py-2">
     <h1>Danh sách món ăn trong các đơn hàng đã tiếp nhận</h1>

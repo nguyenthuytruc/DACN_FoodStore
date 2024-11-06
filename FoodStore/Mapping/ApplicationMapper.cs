@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FoodStore.DTO;
 using FoodStore.Models;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace FoodStore.Mapping
 {
@@ -9,6 +10,7 @@ namespace FoodStore.Mapping
         public ApplicationMapper() { 
         
             CreateMap<Food, FoodDTO>().ReverseMap();
+            CreateMap<FoodCategory, FoodCategoryDTO>().ReverseMap();
         }
 
     }

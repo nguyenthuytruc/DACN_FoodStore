@@ -44,6 +44,7 @@ async function getCartItems() {
 
   const items = await Promise.all(
     Object.entries(cart).map(async ([id, quantity]) => {
+      console.log(id); 
       const food = await getFoodById(id);
       return { id: parseInt(id), name: food.name, price: food.price, quantity };
     })
