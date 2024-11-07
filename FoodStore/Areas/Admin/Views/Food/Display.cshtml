@@ -50,9 +50,9 @@
                 <tr>
                     <td>
                         <select name="ingredients[@i].IngredientId" class="form-control">
-                            @if (ViewBag.Ingredients != null && ViewBag.Ingredients.Count > 0)
+                            @if (ingredients != null && ingredients.Count > 0)
                             {
-                                foreach (var ingredient in ViewBag.Ingredients)
+                                foreach (var ingredient in ingredients)
                                 {
                                     <option value="@ingredient.Id">@ingredient.Name</option>
                                 }
@@ -62,11 +62,10 @@
                                 <option value="">Không có nguyên liệu</option>
                             }
                         </select>
-
                     </td>
                     <td>
                         <input type="text" name="ingredients[@i].Unit" class="form-control"
-                               readonly value="@ViewBag.Ingredients?.ElementAtOrDefault(i)?.Unit" />
+                               readonly value="@ingredients?.ElementAtOrDefault(i)?.Unit" />
                     </td>
                     <td>
                         <input type="number" name="ingredients[@i].Quantity" class="form-control" min="0" />
@@ -74,8 +73,6 @@
                 </tr>
             }
         </tbody>
-
-
     </table>
     <button type="submit" class="btn btn-primary">Lưu công thức</button>
 </form>

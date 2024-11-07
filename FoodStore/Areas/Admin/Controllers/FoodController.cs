@@ -12,12 +12,21 @@ namespace FoodStore.Areas.Admin.Controllers
     {
         private readonly IFoodRepository _foodRepository;
         private readonly IFoodCategoryRepository _foodcategoryRepository;
+        private readonly ApplicationDbContext _context;
+        private readonly IIngredientRepository _ingredientRepository;
 
-        public FoodController(IFoodRepository foodRepository, IFoodCategoryRepository foodcategoryRepository)
+        public FoodController(
+            IFoodRepository foodRepository, 
+            IFoodCategoryRepository foodcategoryRepository,
+            ApplicationDbContext context,
+            IIngredientRepository ingredientRepository
+        )
 
         {
             _foodRepository = foodRepository;
             _foodcategoryRepository = foodcategoryRepository;
+            _context = context;
+            _ingredientRepository = ingredientRepository;
         }
 
       
@@ -73,6 +82,14 @@ namespace FoodStore.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
+            // Lấy danh sách nguyên liệu
+            var ingredients = await _ingredientRepository.GetAllIngredientsAsync();
+
+            // Kiểm tra số lượng nguyên liệu đã lấy
+            Console.WriteLine($"Ingredients count: {ingredients.Count()}"); // Kiểm tra số lượng nguyên liệu
+            ViewBag.Ingredients = ingredients as List<FoodStore.Models.Ingredients>;
+
             return View(food);
         }
 
@@ -149,6 +166,22 @@ namespace FoodStore.Areas.Admin.Controllers
             await _foodRepository.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveRecipe(int id, List<FoodIngredient> ingredients)
+        {
+            foreach (var ingredient in ingredients)
+            {
+                if (ingredient.IngredientId != 0) // Bỏ qua các hàng trống
+                {
+                    ingredient.FoodId = id;
+                    await _ingredientRepository.AddFoodIngredientAsync(ingredient);
+                }
+            }
+
+            return RedirectToAction("Detail", new { id });
+        }
+
 
     }
 }
