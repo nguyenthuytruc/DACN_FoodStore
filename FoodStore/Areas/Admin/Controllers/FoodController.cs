@@ -88,7 +88,7 @@ namespace FoodStore.Areas.Admin.Controllers
 
             // Kiểm tra số lượng nguyên liệu đã lấy
             Console.WriteLine($"Ingredients count: {ingredients.Count()}"); // Kiểm tra số lượng nguyên liệu
-            ViewBag.Ingredients = ingredients as List<FoodStore.Models.Ingredients>;
+            ViewBag.Ingredients = ingredients;
 
             return View(food);
         }

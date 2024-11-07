@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Display";
     Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
+    var ingredients = ViewBag.Ingredients as List<FoodStore.Models.Ingredients>;
 }
 
 <h1>Chi tiết món ăn @Model.Name</h1>
