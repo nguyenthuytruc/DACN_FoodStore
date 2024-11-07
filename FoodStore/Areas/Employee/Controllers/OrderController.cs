@@ -2,6 +2,7 @@
 using FoodStore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FoodStore.Areas.Employee.Controllers
 {
@@ -9,11 +10,12 @@ namespace FoodStore.Areas.Employee.Controllers
     [Authorize(Roles = SD.Role_Employee)]
     public class OrderController : Controller
     {
-
+        private readonly ApplicationDbContext _context;
         private readonly IOrderRepository _orderRepository;
         private readonly ITableRepository _tableRepository;
-        public OrderController(IOrderRepository orderRepository, ITableRepository tableRepository)
+        public OrderController(ApplicationDbContext context, IOrderRepository orderRepository, ITableRepository tableRepository)
         {
+            _context = context;
             _orderRepository = orderRepository;
             _tableRepository = tableRepository;
         }
@@ -83,6 +85,34 @@ namespace FoodStore.Areas.Employee.Controllers
         {
             await _orderRepository.DeleteAsync(id);
             return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> FoodDelivery()
+        {
+            var acceptedOrderDetails = await _orderRepository.GetAcceptedOrderDetails();
+
+            acceptedOrderDetails = acceptedOrderDetails
+                .Where(od => !od.Order.StatusPay && od.Status == 2)
+                .ToList();
+
+            return View("FoodDelivery", acceptedOrderDetails);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MoveToDelivered(int orderId, int foodId, int status)
+        {
+            // TODO use service to query instead of context
+            var orderDetail = await _context.OrderDetails
+                .Include(od => od.Order) // Bao gồm thông tin đơn hàng
+                .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
+
+            if (orderDetail != null)
+            {
+                orderDetail.Status = status; // Cập nhật trạng thái món ăn
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("FoodDelivery"); // Hoặc chuyển tới một trang khác nếu cần
         }
     }
 }

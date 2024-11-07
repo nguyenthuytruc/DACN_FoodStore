@@ -96,13 +96,15 @@ namespace FoodStore.Areas.Kitchen.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> MoveToDelivered(int orderId, int foodId, int status)
+        public async Task<IActionResult> MoveToOngoing(int orderId, int foodId, int status)
         {
             var orderDetail = await _context.OrderDetails
                 .Include(od => od.Order) // Bao gồm thông tin đơn hàng
                 .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
 
-            if (orderDetail != null){
+            bool notYetDelivered = orderDetail.Status < 3;
+            if (orderDetail != null && notYetDelivered)
+            {
                 orderDetail.Status = status; // Cập nhật trạng thái món ăn
                 await _context.SaveChangesAsync();
             }
