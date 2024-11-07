@@ -10,51 +10,76 @@
 <div>
     <hr />
     <dl class="row">
-        <dt class="col-sm-2">
-            Loại thực phẩm
-        </dt>
+        <dt class="col-sm-2">Loại thực phẩm</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.FoodCategorys.Name)</dd>
+
+        <dt class="col-sm-2">Tên</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Name)</dd>
+
+        <dt class="col-sm-2">Hình ảnh</dt>
         <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.FoodCategorys.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            Tên
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            Hình ảnh
-        </dt>
-        <dd class = "col-sm-10">
             <img src="@Model.Image" alt="" style="max-width: 100px; max-height: 100px;">
         </dd>
-        <dt class = "col-sm-2">
-            Đơn vị tính
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-        <dt class = "col-sm-2">
-            Giá
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-        <dt class = "col-sm-2">
-            Tình trạng
-        </dt>
-        <dd class = "col-sm-10">
-            @if (Model.Status == 1)
-            {
-                <text>Hết</text>
-            }
-            else
-            {
-                <text>Còn</text>
-            }
+
+        <dt class="col-sm-2">Đơn vị tính</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Type)</dd>
+
+        <dt class="col-sm-2">Giá</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Price)</dd>
+
+        <dt class="col-sm-2">Tình trạng</dt>
+        <dd class="col-sm-10">
+            @(Model.Status == 1 ? "Hết" : "Còn")
         </dd>
     </dl>
 </div>
+
+<h3>Công thức món ăn</h3>
+<form asp-action="SaveRecipe" method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tên nguyên liệu</th>
+                <th>Đơn vị</th>
+                <th>Khối lượng</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < 5; i++)
+            {
+                <tr>
+                    <td>
+                        <select name="ingredients[@i].IngredientId" class="form-control">
+                            @if (ViewBag.Ingredients != null && ViewBag.Ingredients.Count > 0)
+                            {
+                                foreach (var ingredient in ViewBag.Ingredients)
+                                {
+                                    <option value="@ingredient.Id">@ingredient.Name</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="">Không có nguyên liệu</option>
+                            }
+                        </select>
+
+                    </td>
+                    <td>
+                        <input type="text" name="ingredients[@i].Unit" class="form-control"
+                               readonly value="@ViewBag.Ingredients?.ElementAtOrDefault(i)?.Unit" />
+                    </td>
+                    <td>
+                        <input type="number" name="ingredients[@i].Quantity" class="form-control" min="0" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+
+
+    </table>
+    <button type="submit" class="btn btn-primary">Lưu công thức</button>
+</form>
+
 <div>
     <a asp-action="Update" asp-route-id="@Model?.Id" class="btn btn-primary">Chỉnh sửa</a> |
     <a asp-action="Index" class="btn btn-info">Trở về</a>

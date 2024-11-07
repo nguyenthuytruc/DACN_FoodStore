@@ -55,17 +55,44 @@ namespace FoodStore.Areas.Admin.Controllers
         [Route("/Admin/Order/Detail/{id:int}")]
         public async Task<IActionResult> Detail(int id)
         {
+            // Lấy thông tin đơn hàng
             var order = await _orderRepository.GetOrderById(id);
-            var orderDetail = await _orderRepository.GetListOrderDetailsByIdOrder(id);
-            ViewBag.OrderDetails = orderDetail;
-
             if (order == null)
             {
                 return NotFound();
             }
+
+            // Lấy chi tiết đơn hàng
+            var orderDetail = await _orderRepository.GetListOrderDetailsByIdOrder(id);
+            ViewBag.OrderDetails = orderDetail;
+
+            // Lấy danh sách nguyên liệu
+            var ingredients = await _ingredientRepository.GetAllIngredientsAsync();
+
+            // Kiểm tra số lượng nguyên liệu đã lấy
+            Console.WriteLine($"Ingredients count: {ingredients.Count()}"); // Kiểm tra số lượng nguyên liệu
+            ViewBag.Ingredients = ingredients;
+
             ViewBag.Id = order.Id;
             return View(order);
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> SaveRecipe(int id, List<FoodIngredient> ingredients)
+        {
+            foreach (var ingredient in ingredients)
+            {
+                if (ingredient.IngredientId != 0) // Bỏ qua các hàng trống
+                {
+                    ingredient.FoodId = id;
+                    await _ingredientRepository.AddFoodIngredientAsync(ingredient);
+                }
+            }
+
+            return RedirectToAction("Detail", new { id });
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> DetailAccepted(int id)
