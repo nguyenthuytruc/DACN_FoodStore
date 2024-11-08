@@ -11,6 +11,8 @@ namespace FoodStore.Models
         public int FoodId { get; set; }
         public int IngredientId { get; set; }
 
+        public int QuantityRequired { get; set; }
+
         // Điều hướng đến Food
         [ForeignKey("FoodId")]
         public Food Food { get; set; }
