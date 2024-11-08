@@ -57,6 +57,8 @@ const route = useRoute();
 const idTable = ref(route.params.idTable); // Lấy idTable từ route params
 const cartItems = ref([]); // Danh sách món ăn trong giỏ hàng
 const toast = useToast();
+const orderHistory = ref([]);
+
 // Hàm lấy dữ liệu món ăn từ API theo ID
 async function getFoodById(id) {
 	try {
@@ -155,7 +157,34 @@ async function submitOrder() {
 		if (response.status === 200) {
 			console.log("Đơn hàng đã được gửi thành công!");
 			// Sau khi gửi thành công, xóa giỏ hàng khỏi sessionStorage
+
+			// Lấy thông tin order từ phản hồi server
+			const orderInfo = response.data; // Giả sử server trả về thông tin đơn hàng sau khi tạo
+
+			// Lấy lịch sử order từ sessionStorage hoặc tạo mảng mới
+			const orderHistory =
+				JSON.parse(sessionStorage.getItem("orderHistory")) || [];
+
+			// Thêm thông tin order vào lịch sử
+			orderHistory.push({
+				orderId: orderInfo.id, // Giả sử `id` là mã đơn hàng từ server
+				tableId: orderDTO.tableId,
+				totalPrice: orderDTO.totalPrice,
+				date: new Date().toISOString(), // Thời gian hiện tại khi đặt
+				items: items, // Danh sách món ăn đã đặt
+			});
+
+			// Lưu lại lịch sử order vào sessionStorage
+			sessionStorage.setItem(
+				"orderHistory",
+				JSON.stringify(orderHistory)
+			);
+
+			// Sau khi gửi thành công, xóa giỏ hàng khỏi sessionStorage
 			sessionStorage.removeItem("cart");
+
+			console.log(orderHistory);
+
 			// Cập nhật giao diện hoặc điều hướng nếu cần
 			this.toast.success("Đặt món thành công !", {
 				position: "bottom-left",
