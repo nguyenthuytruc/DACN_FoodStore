@@ -13,6 +13,7 @@ namespace FoodStore.Mapping
             CreateMap<FoodCategory, FoodCategoryDTO>().ReverseMap();
             CreateMap<Order, OrderDTO>().ReverseMap();
             CreateMap<OrderDetail, OrderDetailDTO>().ReverseMap();
+            CreateMap<Table, TableDTO>().ReverseMap();
 
         }
 
