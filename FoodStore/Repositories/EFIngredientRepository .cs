@@ -52,5 +52,21 @@ namespace FoodStore.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<IEnumerable<Ingredients>> GetAllIngredientsAsync()
+        {
+            // Truy vấn lấy danh sách nguyên liệu chưa bị xóa
+            var ingredients = await _context.Ingredients
+                                            .Where(i => !i.IsDeleted)
+                                            .ToListAsync();
+
+            return ingredients;
+        }
+
+        public async Task AddFoodIngredientAsync(FoodIngredient foodIngredient)
+        {
+            _context.FoodIngredient.Add(foodIngredient);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }
