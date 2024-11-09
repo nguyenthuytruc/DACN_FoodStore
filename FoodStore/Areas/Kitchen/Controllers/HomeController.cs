@@ -47,6 +47,7 @@ namespace FoodStore.Areas.Kitchen.Controllers
             // Get counts for unfinished and waiting for delivery orders
             var unfinishedCount = await _orderDetailRepository.CountUnfinishedAsync(); // Món ăn chưa hoàn thành
             var waitingForDeliveryCount = await _orderDetailRepository.CountWaitingForDeliveryAsync(); // Món ăn chờ bàn giao
+            var notReadyCount = await _orderDetailRepository.CountNotReadyAsync(); // Món ăn chờ bàn giao
 
             // Truyền dữ liệu vào ViewBag
             ViewBag.TotalRevenue = totalRevenue;
@@ -55,6 +56,7 @@ namespace FoodStore.Areas.Kitchen.Controllers
             ViewBag.CategoryCount = categoryCount;
             ViewBag.UnfinishedCount = unfinishedCount;
             ViewBag.WaitingForDeliveryCount = waitingForDeliveryCount;
+            ViewBag.NotReadyCount = notReadyCount;
             ViewBag.Invoices = invoices;
 
             return View();
