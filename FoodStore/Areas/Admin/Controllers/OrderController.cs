@@ -73,21 +73,17 @@ namespace FoodStore.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Accept(int id)
         {
-            // 1. Lấy thông tin Order
             var order = await _orderRepository.GetOrderById(id);
             if (order == null)
             {
-                return NotFound("Order not found.");
+                return RedirectToAction("Index");
             }
 
-            // 2. Lấy tất cả OrderDetails theo OrderId
             var orderDetails = await _context.OrderDetails
                                               .Where(od => od.OrderId == id)
                                               .ToListAsync();
 
-            // 3. Tính tổng số nguyên liệu cần thiết từ các FoodIngredient
             var totalIngredientsNeeded = new Dictionary<int, int>();
-
             foreach (var orderDetail in orderDetails)
             {
                 var foodIngredients = await _context.FoodIngredient
@@ -98,16 +94,16 @@ namespace FoodStore.Areas.Admin.Controllers
                 {
                     if (totalIngredientsNeeded.ContainsKey(foodIngredient.IngredientId))
                     {
-                        totalIngredientsNeeded[foodIngredient.IngredientId] += foodIngredient.QuantityRequired;
+                        totalIngredientsNeeded[foodIngredient.IngredientId] += foodIngredient.QuantityRequired * orderDetail.Quantity;
                     }
                     else
                     {
-                        totalIngredientsNeeded[foodIngredient.IngredientId] = foodIngredient.QuantityRequired;
+                        totalIngredientsNeeded[foodIngredient.IngredientId] = foodIngredient.QuantityRequired * orderDetail.Quantity;
                     }
                 }
             }
 
-            // 4. Kiểm tra số lượng trong kho có đủ không
+            var insufficientIngredients = new List<string>();
             foreach (var ingredientId in totalIngredientsNeeded.Keys)
             {
                 var ingredient = await _context.Ingredients.FindAsync(ingredientId);
@@ -117,23 +113,24 @@ namespace FoodStore.Areas.Admin.Controllers
                 if (ingredient == null || availableAmount < requiredAmount)
                 {
                     var shortage = requiredAmount - availableAmount;
-                    Console.WriteLine($"Nguyên liệu ID {ingredientId} không đủ. Cần thêm: {shortage}. Có sẵn: {availableAmount}, Cần: {requiredAmount}");
-                    return BadRequest($"Không đủ nguyên liệu ID {ingredientId}. Cần thêm {shortage} để chấp nhận đơn hàng.");
+                    insufficientIngredients.Add($"Nguyên liệu ID {ingredientId} không đủ. Cần thêm: {shortage}. Có sẵn: {availableAmount}, Cần: {requiredAmount}");
                 }
             }
 
-            // 5. Nếu đủ nguyên liệu, tiến hành trừ kho
-            foreach (var ingredientId in totalIngredientsNeeded.Keys)
+            if (insufficientIngredients.Any())
             {
-                var ingredient = await _context.Ingredients.FindAsync(ingredientId);
-                ingredient.Quantity -= totalIngredientsNeeded[ingredientId];
-                _context.Ingredients.Update(ingredient);
+                var errorMsg = string.Join("<br/>", insufficientIngredients);
+                ViewBag.ErrorMessage = errorMsg;  // TODO use view bag or similar to show message on GUI
+                Console.WriteLine("ErrorMessage set in ViewBag: " + ViewBag.ErrorMessage);
+                return BadRequest(errorMsg);
+                // return RedirectToAction("Index");
             }
 
-            // 6. Cập nhật trạng thái order và lưu thay đổi
             order.Status = true;
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
+
+            ViewBag.SuccessMessage = "Order accepted successfully!";
 
             return RedirectToAction("Index");
         }

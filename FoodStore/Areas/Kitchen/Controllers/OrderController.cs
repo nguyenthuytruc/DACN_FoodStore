@@ -99,24 +99,24 @@ namespace FoodStore.Areas.Kitchen.Controllers
 
                     if (ShouldCheckAndDeductIngredients(orderDetail.Status, status))
                     {
-                        var hasEnoughIngredients = await CheckAndUpdateIngredientsAsync(foodId);
+                        var hasEnoughIngredients = await CheckAndUpdateIngredientsAsync(foodId, orderDetail.Quantity);
 
                         // Nếu không đủ nguyên liệu, chuyển trạng thái thành -1
                         if (!hasEnoughIngredients)
                         {
                             Console.WriteLine("Not enough ingredients. Updating status to -1.");
-                            UpdateOrderDetailStatus(orderDetail, -1);
+                            UpdateStatus(orderDetail, -1);
                         }
                         else
                         {
                             Console.WriteLine("Inventory updated successfully for ingredients.");
-                            UpdateOrderDetailStatus(orderDetail, status);
+                            UpdateStatus(orderDetail, status);
                         }
                     }
                     else
                     {
                         Console.WriteLine("No inventory update needed as the status change is not from 0 to 1.");
-                        UpdateOrderDetailStatus(orderDetail, status);
+                        UpdateStatus(orderDetail, status);
                     }
 
                     await _context.SaveChangesAsync();
@@ -145,18 +145,23 @@ namespace FoodStore.Areas.Kitchen.Controllers
         // Hàm kiểm tra nếu cần trừ nguyên liệu
         private bool ShouldCheckAndDeductIngredients(int currentStatus, int newStatus)
         {
-            return currentStatus == 0 && newStatus == 1;
+            return currentStatus < 1 && newStatus == 1;
         }
 
         // Hàm kiểm tra và cập nhật nguyên liệu
-        private async Task<bool> CheckAndUpdateIngredientsAsync(int foodId)
+        // Hàm kiểm tra và cập nhật nguyên liệu, xem xét số lượng món được đặt
+        private async Task<bool> CheckAndUpdateIngredientsAsync(int foodId, int quantity)
         {
+            // Lấy công thức của món ăn
             var formulaList = await _context.FoodIngredient
                 .Where(fi => fi.FoodId == foodId)
                 .ToListAsync();
 
             foreach (var formula in formulaList)
             {
+                // Tính tổng lượng nguyên liệu cần cho số lượng món đã đặt
+                int totalRequiredQuantity = formula.QuantityRequired * quantity;
+
                 var ingredient = await _context.Ingredients
                     .FirstOrDefaultAsync(i => i.Id == formula.IngredientId);
 
@@ -167,20 +172,21 @@ namespace FoodStore.Areas.Kitchen.Controllers
                 }
 
                 // Kiểm tra nếu không đủ số lượng
-                if (ingredient.Quantity < formula.QuantityRequired)
+                if (ingredient.Quantity < totalRequiredQuantity)
                 {
-                    Console.WriteLine($"Not enough ingredient ID {ingredient.Id}. Required: {formula.QuantityRequired}, Available: {ingredient.Quantity}");
+                    Console.WriteLine($"Not enough ingredient ID {ingredient.Id}. Required: {totalRequiredQuantity}, Available: {ingredient.Quantity}");
                     return false; // Thiếu nguyên liệu
                 }
             }
 
-            // Nếu đủ nguyên liệu, tiến hành trừ
+            // Nếu đủ nguyên liệu, tiến hành trừ kho
             foreach (var formula in formulaList)
             {
+                int totalRequiredQuantity = formula.QuantityRequired * quantity;
                 var ingredient = await _context.Ingredients
                     .FirstOrDefaultAsync(i => i.Id == formula.IngredientId);
 
-                ingredient.Quantity -= formula.QuantityRequired;
+                ingredient.Quantity -= totalRequiredQuantity;
                 _context.Ingredients.Update(ingredient);
             }
 
@@ -188,7 +194,7 @@ namespace FoodStore.Areas.Kitchen.Controllers
         }
 
         // Hàm cập nhật trạng thái của chi tiết đơn hàng
-        private void UpdateOrderDetailStatus(OrderDetail orderDetail, int newStatus)
+        private void UpdateStatus(OrderDetail orderDetail, int newStatus)
         {
             Console.WriteLine($"Updating status for Order Detail - Order ID: {orderDetail.OrderId}, Food ID: {orderDetail.FoodId} to Status: {newStatus}");
             orderDetail.Status = newStatus;
