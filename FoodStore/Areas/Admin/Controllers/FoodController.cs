@@ -3,6 +3,7 @@ using FoodStore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace FoodStore.Areas.Admin.Controllers
 {
@@ -206,43 +207,68 @@ namespace FoodStore.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveRecipe(int id, List<FoodIngredient> ingredients)
         {
+            Console.WriteLine($"Starting SaveRecipe for Food ID: {id} with {ingredients.Count} ingredients.");
+
+            // Log each ingredient in the list before processing
+            foreach (var ing in ingredients)
+            {
+                Console.WriteLine($"Received Ingredient - ID: {ing.IngredientId}, QuantityRequired: {ing.QuantityRequired}");
+            }
+
             var food = await _foodRepository.GetByIdAsync(id);
             if (food == null)
             {
+                Console.WriteLine("Food not found.");
                 return NotFound("Food not found.");
             }
 
-            // Loại bỏ tất cả các nguyên liệu hiện tại liên quan đến FoodId từ cơ sở dữ liệu
-            var existingIngredients = await _foodIngredientRepository.GetIngredientsByFoodIdAsync(id);
-            foreach (var ingredient in existingIngredients)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                await _foodIngredientRepository.DeleteAsync(ingredient.FoodId, ingredient.IngredientId);
-            }
-            Console.WriteLine($"All existing ingredients for FoodId {id} have been deleted.");
-
-            // Loại bỏ các bản ghi trùng lặp trong danh sách `ingredients` dựa trên `IngredientId`
-            var distinctIngredients = ingredients
-                .Where(i => i.IngredientId != 0) // Bỏ qua các hàng trống
-                .GroupBy(i => i.IngredientId)
-                .Select(g => g.First())
-                .ToList();
-
-            foreach (var ingredient in distinctIngredients)
-            {
-                var newIngredient = new FoodIngredient
+                try
                 {
-                    FoodId = id,
-                    IngredientId = ingredient.IngredientId,
-                    QuantityRequired = ingredient.QuantityRequired
-                };
+                    // Step 1: Delete existing ingredients
+                    var existingIngredients = await _foodIngredientRepository.GetIngredientsByFoodIdAsync(id);
+                    Console.WriteLine($"Found {existingIngredients.Count} existing ingredients to delete for Food ID: {id}.");
 
-                Console.WriteLine($"Adding FoodIngredient with FoodId: {id} and IngredientId: {ingredient.IngredientId}");
-                await _foodIngredientRepository.AddAsync(newIngredient);
+                    foreach (var ingredient in existingIngredients)
+                    {
+                        Console.WriteLine($"Deleting Ingredient - FoodID: {ingredient.FoodId}, IngredientID: {ingredient.IngredientId}");
+                        _context.FoodIngredient.Remove(ingredient);
+                    }
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine("Existing ingredients deleted successfully.");
+
+                    // Step 2: Add new ingredients
+                    foreach (var ingredient in ingredients)
+                    {
+                        var newIngredient = new FoodIngredient
+                        {
+                            FoodId = id,
+                            IngredientId = ingredient.IngredientId,
+                            QuantityRequired = ingredient.QuantityRequired
+                        };
+
+                        Console.WriteLine($"Adding new Ingredient - FoodID: {newIngredient.FoodId}, IngredientID: {newIngredient.IngredientId}, QuantityRequired: {newIngredient.QuantityRequired}");
+                        await _foodIngredientRepository.AddAsync(newIngredient);
+                    }
+                    Console.WriteLine("New ingredients added successfully.");
+
+                    // Commit transaction
+                    await transaction.CommitAsync();
+                    Console.WriteLine("Transaction committed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    Console.WriteLine($"Error occurred: {ex.Message}");
+                    return StatusCode(500, "An error occurred while saving the recipe.");
+                }
             }
 
-            // Chuyển hướng về Display thay vì Detail
+            Console.WriteLine($"SaveRecipe completed for Food ID: {id}");
             return RedirectToAction("Display", new { id });
         }
+
 
 
     }
