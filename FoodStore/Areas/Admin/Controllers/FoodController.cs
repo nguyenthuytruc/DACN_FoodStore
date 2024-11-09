@@ -90,12 +90,28 @@ namespace FoodStore.Areas.Admin.Controllers
             var foodIngredients = await _foodIngredientRepository.GetIngredientsByFoodIdAsync(id);
             var allIngredients = await _ingredientRepository.GetAllIngredientsAsync();
 
+            // Ghi log để kiểm tra danh sách lấy được
+            Console.WriteLine($"Food ID: {id}");
+            Console.WriteLine($"Food Ingredients Count: {foodIngredients?.Count ?? 0}");
+            Console.WriteLine("Food Ingredients:");
+            foreach (var ing in foodIngredients)
+            {
+                Console.WriteLine($" - Ingredient ID: {ing.Id}, Name: {ing.Name}");
+            }
+
+            Console.WriteLine("All Ingredients:");
+            foreach (var ing in allIngredients)
+            {
+                Console.WriteLine($" - Ingredient ID: {ing.Id}, Name: {ing.Name}");
+            }
+
             // Gán cả hai danh sách vào ViewBag
             ViewBag.FoodIngredients = foodIngredients; // Nguyên liệu của món ăn
             ViewBag.AllIngredients = allIngredients;   // Tất cả nguyên liệu
 
             return View(food);
         }
+
 
 
         // Hiển thị form cập nhật sản phẩm
