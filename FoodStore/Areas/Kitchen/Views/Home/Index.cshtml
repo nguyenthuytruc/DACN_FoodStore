@@ -47,6 +47,16 @@
         <div class="col-md-4">
             <div class="card shadow-sm" style="border: none;">
                 <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x" style="color: red;"></i>
+                    <p class="mt-2 mb-1" style="font-size: 1.2em;">Món không đủ nguyên liệu</p>
+                    <h3 class="font-weight-bold">@ViewBag.notReadyCount</h3>
+                </div>
+            </div>
+        </div>
+        <!-- Món chưa hoàn thành -->
+        <div class="col-md-4">
+            <div class="card shadow-sm" style="border: none;">
+                <div class="card-body text-center">
                     <i class="fas fa-clock fa-2x" style="color: #f39c12;"></i>
                     <p class="mt-2 mb-1" style="font-size: 1.2em;">Món chưa hoàn thành</p>
                     <h3 class="font-weight-bold">@ViewBag.unfinishedCount</h3>

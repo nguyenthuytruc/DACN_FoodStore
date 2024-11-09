@@ -24,6 +24,9 @@
                         <td>
                             @switch (orderDetail.Status)
                             {
+                                case -1:
+                                    <span class="badge bg-danger">Không đủ nguyên liệu</span>
+                                    break;
                                 case 0:
                                     <span class="badge bg-secondary">Đang đặt</span>
                                     break;
@@ -39,6 +42,7 @@
                             <form asp-action="UpdateOrderDetailStatus" method="post">
                                 <input type="hidden" name="orderId" value="@orderDetail.OrderId" />
                                 <input type="hidden" name="foodId" value="@orderDetail.FoodId" />
+
                                 @if (orderDetail.Status == 0)
                                 {
                                     <button type="submit" name="status" value="1" class="btn btn-warning">Chuyển sang Đang làm</button>
@@ -46,6 +50,10 @@
                                 else if (orderDetail.Status == 1)
                                 {
                                     <button type="submit" name="status" value="2" class="btn btn-success">Chuyển sang Đã xong</button>
+                                }
+                                else if (orderDetail.Status == -1)
+                                {
+                                    <button type="submit" name="status" value="0" class="btn btn-secondary">Chuyển sang chưa làm</button>
                                 }
                             </form>
                         </td>
