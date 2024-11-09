@@ -30,9 +30,11 @@ namespace FoodStore.Areas.Kitchen.Controllers
         {
             var acceptedOrderDetails = await _orderRepository.GetAcceptedOrderDetails();
 
-            // Filter for items that are either unpaid or not yet completed
+            // Lọc các mục chưa thanh toán và chưa hoàn thành
             acceptedOrderDetails = acceptedOrderDetails
                 .Where(od => !od.Order.StatusPay && od.Status < 2)
+                .OrderBy(od => od.Status)    // Sắp xếp theo Status tăng dần
+                .ThenBy(od => od.FoodId)     // Sau đó sắp xếp theo FoodId
                 .ToList();
 
             return View(acceptedOrderDetails);
@@ -58,7 +60,7 @@ namespace FoodStore.Areas.Kitchen.Controllers
                 .Include(od => od.Food)
                 .Include(od => od.Order)
                 .Where(od => !od.Order.StatusPay) // Lọc các đơn hàng chưa thanh toán
-                .Where(od => od.Status != 2) // Lọc ra các món ăn chưa hoàn thành
+                .Where(od => od.Status < 2) // Lọc ra các món ăn chưa hoàn thành
                 .OrderBy(od => od.Order.Created) // Sắp xếp theo thời gian tạo (bỏ qua sắp xếp theo bàn)
                 .ToListAsync();
 
@@ -79,94 +81,6 @@ namespace FoodStore.Areas.Kitchen.Controllers
             return View(order);
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> UpdateOrderDetailStatus(int orderId, int foodId, int status)
-        //{
-        //    var orderDetail = await _context.OrderDetails
-        //        .Include(od => od.Order) // Bao gồm thông tin đơn hàng
-        //        .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
-
-        //    if (orderDetail != null){
-        //        orderDetail.Status = status; // Cập nhật trạng thái món ăn
-
-        //        await _context.SaveChangesAsync();
-        //    }
-
-        //    return RedirectToAction("Index"); // Hoặc chuyển tới một trang khác nếu cần
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> UpdateOrderDetailStatus(int orderId, int foodId, int status)
-        //{
-        //    // Debug: In ra thông tin đầu vào
-        //    Console.WriteLine($"Order ID: {orderId}, Food ID: {foodId}, Status: {status}");
-
-        //    // Lấy chi tiết đơn hàng
-        //    var orderDetail = await _context.OrderDetails
-        //        .Include(od => od.Order)
-        //        .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
-
-        //    // Debug: Kiểm tra nếu không tìm thấy chi tiết đơn hàng
-        //    if (orderDetail == null)
-        //    {
-        //        Console.WriteLine("Order detail not found");
-        //        return NotFound("Order detail not found");
-        //    }
-        //    Console.WriteLine($"Found order detail for Order ID: {orderId} with Food ID: {foodId}");
-
-        //    // Lấy danh sách công thức của món ăn (nguyên liệu cần thiết)
-        //    var formulaList = await _context.FoodIngredient
-        //        .Where(fi => fi.FoodId == foodId)
-        //        .ToListAsync();
-
-        //    // Debug: In ra số lượng nguyên liệu trong công thức
-        //    Console.WriteLine($"Number of ingredients in formula for Food ID {foodId}: {formulaList.Count}");
-
-        //    // Duyệt qua từng nguyên liệu trong công thức và cập nhật số lượng còn lại trong kho
-        //    foreach (var formula in formulaList)
-        //    {
-        //        // Lấy nguyên liệu trong kho
-        //        var ingredient = await _context.Ingredients
-        //            .FirstOrDefaultAsync(i => i.Id == formula.IngredientId);
-
-        //        // Debug: Kiểm tra nếu không tìm thấy nguyên liệu trong kho
-        //        if (ingredient == null)
-        //        {
-        //            Console.WriteLine($"Ingredient with ID {formula.IngredientId} not found in inventory.");
-        //            continue;
-        //        }
-
-        //        Console.WriteLine($"Ingredient ID {ingredient.Id} - Current Quantity: {ingredient.Quantity}");
-
-        //        // Trừ số lượng theo công thức
-        //        int quantityRequired = formula.QuantityRequired; // Giả sử có thuộc tính này trong công thức
-        //        ingredient.Quantity -= quantityRequired;
-
-        //        // Debug: In ra số lượng sau khi trừ
-        //        Console.WriteLine($"Updated Quantity for Ingredient ID {ingredient.Id}: {ingredient.Quantity}");
-
-        //        // Kiểm tra nếu số lượng còn lại nhỏ hơn 0
-        //        if (ingredient.Quantity < 0)
-        //        {
-        //            ingredient.Quantity = 0; // Không cho phép số lượng âm
-        //            Console.WriteLine($"Quantity for Ingredient ID {ingredient.Id} set to 0 to avoid negative value");
-        //        }
-
-        //        // Cập nhật lại nguyên liệu
-        //        _context.Ingredients.Update(ingredient);
-        //    }
-
-        //    // Cập nhật trạng thái của món ăn trong chi tiết đơn hàng
-        //    Console.WriteLine($"Updating status for Order Detail - Order ID: {orderId}, Food ID: {foodId} to Status: {status}");
-        //    orderDetail.Status = status;
-
-        //    // Lưu thay đổi
-        //    await _context.SaveChangesAsync();
-        //    Console.WriteLine("Changes saved to database");
-
-        //    return RedirectToAction("Index"); // Hoặc điều hướng tới trang khác nếu cần
-        //}
-
         [HttpPost]
         public async Task<IActionResult> UpdateOrderDetailStatus(int orderId, int foodId, int status)
         {
@@ -176,68 +90,42 @@ namespace FoodStore.Areas.Kitchen.Controllers
             {
                 try
                 {
-                    // Lấy chi tiết đơn hàng
-                    var orderDetail = await _context.OrderDetails
-                        .Include(od => od.Order)
-                        .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
-
+                    var orderDetail = await GetOrderDetailAsync(orderId, foodId);
                     if (orderDetail == null)
                     {
                         Console.WriteLine("Order detail not found");
                         return NotFound("Order detail not found");
                     }
 
-                    // Chỉ thực hiện trừ nguyên liệu nếu trạng thái chuyển từ 0 sang 1
-                    if (orderDetail.Status == 0 && status == 1)
+                    if (ShouldCheckAndDeductIngredients(orderDetail.Status, status))
                     {
-                        // Lấy danh sách nguyên liệu cho món ăn
-                        var formulaList = await _context.FoodIngredient
-                            .Where(fi => fi.FoodId == foodId)
-                            .ToListAsync();
+                        var hasEnoughIngredients = await CheckAndUpdateIngredientsAsync(foodId);
 
-                        // Duyệt qua từng nguyên liệu và cập nhật số lượng tồn kho
-                        foreach (var formula in formulaList)
+                        // Nếu không đủ nguyên liệu, chuyển trạng thái thành -1
+                        if (!hasEnoughIngredients)
                         {
-                            var ingredient = await _context.Ingredients
-                                .FromSqlRaw("SELECT * FROM Ingredients WITH (ROWLOCK, UPDLOCK) WHERE Id = {0}", formula.IngredientId)
-                                .FirstOrDefaultAsync();
-
-                            if (ingredient == null)
-                            {
-                                Console.WriteLine($"Ingredient with ID {formula.IngredientId} not found in inventory.");
-                                continue;
-                            }
-
-                            // Trừ số lượng cần thiết
-                            ingredient.Quantity -= formula.QuantityRequired;
-
-                            if (ingredient.Quantity < 0)
-                            {
-                                ingredient.Quantity = 0; // Không cho phép số lượng âm
-                                Console.WriteLine($"Quantity for Ingredient ID {ingredient.Id} set to 0 to avoid negative value");
-                            }
-
-                            _context.Ingredients.Update(ingredient);
+                            Console.WriteLine("Not enough ingredients. Updating status to -1.");
+                            UpdateOrderDetailStatus(orderDetail, -1);
                         }
-
-                        Console.WriteLine("Inventory updated successfully for ingredients.");
+                        else
+                        {
+                            Console.WriteLine("Inventory updated successfully for ingredients.");
+                            UpdateOrderDetailStatus(orderDetail, status);
+                        }
                     }
                     else
                     {
                         Console.WriteLine("No inventory update needed as the status change is not from 0 to 1.");
+                        UpdateOrderDetailStatus(orderDetail, status);
                     }
 
-                    // Cập nhật trạng thái của món ăn
-                    Console.WriteLine($"Updating status for Order Detail - Order ID: {orderId}, Food ID: {foodId} to Status: {status}");
-                    orderDetail.Status = status;
-
                     await _context.SaveChangesAsync();
-                    await transaction.CommitAsync(); // Commit transaction nếu tất cả thành công
+                    await transaction.CommitAsync();
                     Console.WriteLine("Changes saved to database");
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync(); // Rollback nếu có lỗi
+                    await transaction.RollbackAsync();
                     Console.WriteLine($"Error occurred: {ex.Message}");
                     return StatusCode(500, "Error updating order details.");
                 }
@@ -246,7 +134,65 @@ namespace FoodStore.Areas.Kitchen.Controllers
             return RedirectToAction("Index");
         }
 
+        // Hàm lấy chi tiết đơn hàng
+        private async Task<OrderDetail> GetOrderDetailAsync(int orderId, int foodId)
+        {
+            return await _context.OrderDetails
+                .Include(od => od.Order)
+                .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
+        }
 
+        // Hàm kiểm tra nếu cần trừ nguyên liệu
+        private bool ShouldCheckAndDeductIngredients(int currentStatus, int newStatus)
+        {
+            return currentStatus == 0 && newStatus == 1;
+        }
+
+        // Hàm kiểm tra và cập nhật nguyên liệu
+        private async Task<bool> CheckAndUpdateIngredientsAsync(int foodId)
+        {
+            var formulaList = await _context.FoodIngredient
+                .Where(fi => fi.FoodId == foodId)
+                .ToListAsync();
+
+            foreach (var formula in formulaList)
+            {
+                var ingredient = await _context.Ingredients
+                    .FirstOrDefaultAsync(i => i.Id == formula.IngredientId);
+
+                if (ingredient == null)
+                {
+                    Console.WriteLine($"Ingredient with ID {formula.IngredientId} not found in inventory.");
+                    continue;
+                }
+
+                // Kiểm tra nếu không đủ số lượng
+                if (ingredient.Quantity < formula.QuantityRequired)
+                {
+                    Console.WriteLine($"Not enough ingredient ID {ingredient.Id}. Required: {formula.QuantityRequired}, Available: {ingredient.Quantity}");
+                    return false; // Thiếu nguyên liệu
+                }
+            }
+
+            // Nếu đủ nguyên liệu, tiến hành trừ
+            foreach (var formula in formulaList)
+            {
+                var ingredient = await _context.Ingredients
+                    .FirstOrDefaultAsync(i => i.Id == formula.IngredientId);
+
+                ingredient.Quantity -= formula.QuantityRequired;
+                _context.Ingredients.Update(ingredient);
+            }
+
+            return true;
+        }
+
+        // Hàm cập nhật trạng thái của chi tiết đơn hàng
+        private void UpdateOrderDetailStatus(OrderDetail orderDetail, int newStatus)
+        {
+            Console.WriteLine($"Updating status for Order Detail - Order ID: {orderDetail.OrderId}, Food ID: {orderDetail.FoodId} to Status: {newStatus}");
+            orderDetail.Status = newStatus;
+        }
 
         [HttpPost]
         public async Task<IActionResult> MoveToOngoing(int orderId, int foodId, int status)
