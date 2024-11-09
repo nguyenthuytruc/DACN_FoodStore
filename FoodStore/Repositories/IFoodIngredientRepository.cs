@@ -11,5 +11,7 @@ namespace FoodStore.Repositories
         Task AddAsync(FoodIngredient foodIngredient);
         Task UpdateAsync(FoodIngredient foodIngredient);
         Task DeleteAsync(int foodId, int ingredientId);
+
+        Task<List<Ingredients>> GetIngredientsByFoodIdAsync(int foodId);
     }
 }

@@ -14,12 +14,14 @@ namespace FoodStore.Areas.Admin.Controllers
         private readonly IFoodCategoryRepository _foodcategoryRepository;
         private readonly ApplicationDbContext _context;
         private readonly IIngredientRepository _ingredientRepository;
+        private readonly IFoodIngredientRepository _foodIngredientRepository;
 
         public FoodController(
             IFoodRepository foodRepository, 
             IFoodCategoryRepository foodcategoryRepository,
             ApplicationDbContext context,
-            IIngredientRepository ingredientRepository
+            IIngredientRepository ingredientRepository,
+            IFoodIngredientRepository foodIngredientRepository
         )
 
         {
@@ -27,6 +29,7 @@ namespace FoodStore.Areas.Admin.Controllers
             _foodcategoryRepository = foodcategoryRepository;
             _context = context;
             _ingredientRepository = ingredientRepository;
+            _foodIngredientRepository = foodIngredientRepository;
         }
 
       
@@ -74,7 +77,7 @@ namespace FoodStore.Areas.Admin.Controllers
             }
             return "/images/" + image.FileName;
         }
-        
+
         public async Task<IActionResult> Display(int id)
         {
             var food = await _foodRepository.GetByIdAsync(id);
@@ -83,15 +86,17 @@ namespace FoodStore.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // Lấy danh sách nguyên liệu
-            var ingredients = await _ingredientRepository.GetAllIngredientsAsync();
+            // Lấy danh sách nguyên liệu thuộc về food có Id = id
+            var foodIngredients = await _foodIngredientRepository.GetIngredientsByFoodIdAsync(id);
+            var allIngredients = await _ingredientRepository.GetAllIngredientsAsync();
 
-            // Kiểm tra số lượng nguyên liệu đã lấy
-            Console.WriteLine($"Ingredients count: {ingredients.Count()}"); // Kiểm tra số lượng nguyên liệu
-            ViewBag.Ingredients = ingredients;
+            // Gán cả hai danh sách vào ViewBag
+            ViewBag.FoodIngredients = foodIngredients; // Nguyên liệu của món ăn
+            ViewBag.AllIngredients = allIngredients;   // Tất cả nguyên liệu
 
             return View(food);
         }
+
 
         // Hiển thị form cập nhật sản phẩm
         [HttpGet]
@@ -167,20 +172,63 @@ namespace FoodStore.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> SaveRecipe(int id, List<FoodIngredient> ingredients)
+        //{
+        //    foreach (var ingredient in ingredients)
+        //    {
+        //        if (ingredient.IngredientId != 0) // Bỏ qua các hàng trống
+        //        {
+        //            ingredient.FoodId = id;
+        //            await _ingredientRepository.AddFoodIngredientAsync(ingredient);
+        //        }
+        //    }
+
+        //    return RedirectToAction("Detail", new { id });
+        //}
+
         [HttpPost]
         public async Task<IActionResult> SaveRecipe(int id, List<FoodIngredient> ingredients)
         {
-            foreach (var ingredient in ingredients)
+            var food = await _foodRepository.GetByIdAsync(id);
+            if (food == null)
             {
-                if (ingredient.IngredientId != 0) // Bỏ qua các hàng trống
-                {
-                    ingredient.FoodId = id;
-                    await _ingredientRepository.AddFoodIngredientAsync(ingredient);
-                }
+                return NotFound("Food not found.");
             }
 
-            return RedirectToAction("Detail", new { id });
+            // Loại bỏ các bản ghi trùng lặp trong danh sách `ingredients` dựa trên `IngredientId`
+            var distinctIngredients = ingredients
+                .Where(i => i.IngredientId != 0) // Bỏ qua các hàng trống
+                .GroupBy(i => i.IngredientId)
+                .Select(g => g.First())
+                .ToList();
+
+            foreach (var ingredient in distinctIngredients)
+            {
+                // Kiểm tra nếu FoodIngredient đã tồn tại trong cơ sở dữ liệu
+                var existingIngredient = await _foodIngredientRepository.GetByIdAsync(id, ingredient.IngredientId);
+                if (existingIngredient != null)
+                {
+                    Console.WriteLine($"Ingredient with FoodId: {id} and IngredientId: {ingredient.IngredientId} already exists. Skipping.");
+                    continue;
+                }
+
+                var newIngredient = new FoodIngredient
+                {
+                    FoodId = id,
+                    IngredientId = ingredient.IngredientId,
+                    QuantityRequired = ingredient.QuantityRequired
+                };
+
+                Console.WriteLine($"Adding FoodIngredient with FoodId: {id} and IngredientId: {ingredient.IngredientId}");
+                await _foodIngredientRepository.AddAsync(newIngredient);
+            }
+
+            // Chuyển hướng về Display thay vì Detail
+            return RedirectToAction("Display", new { id });
         }
+
+
 
 
     }
