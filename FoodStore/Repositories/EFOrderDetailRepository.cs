@@ -51,4 +51,10 @@ public class EFOrderDetailRepository : IOrderDetailRepository
     {
         return await _context.OrderDetails.CountAsync(od => od.Status == 1);
     }
+
+    // Đếm số món ăn chờ bàn giao (giả sử Status = -1 là ko đủ nguyên liệu)
+    public async Task<int> CountNotReadyAsync()
+    {
+        return await _context.OrderDetails.CountAsync(od => od.Status == -1);
+    }
 }

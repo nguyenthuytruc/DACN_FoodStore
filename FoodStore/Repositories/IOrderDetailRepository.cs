@@ -13,4 +13,8 @@ public interface IOrderDetailRepository
 
     // Phương thức đếm số món ăn chờ bàn giao
     Task<int> CountWaitingForDeliveryAsync();
+
+    // Ko đủ nguyên liệu
+    Task<int> CountNotReadyAsync();
+    
 }
