@@ -56,11 +56,10 @@ namespace FoodStore.Repositories
             }
         }
 
-        public async Task<List<Ingredients>> GetIngredientsByFoodIdAsync(int foodId)
+        public async Task<List<FoodIngredient>> GetIngredientsByFoodIdAsync(int foodId)
         {
             return await _context.FoodIngredient
                 .Where(fi => fi.FoodId == foodId)
-                .Select(fi => fi.Ingredients) // Lấy đối tượng `Ingredients` từ `FoodIngredient`
                 .ToListAsync();
         }
 

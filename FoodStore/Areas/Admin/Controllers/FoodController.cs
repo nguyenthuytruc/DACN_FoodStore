@@ -96,7 +96,7 @@ namespace FoodStore.Areas.Admin.Controllers
             Console.WriteLine("Food Ingredients:");
             foreach (var ing in foodIngredients)
             {
-                Console.WriteLine($" - Ingredient ID: {ing.Id}, Name: {ing.Name}");
+                Console.WriteLine($" - FoodId ID: {ing.FoodId}, IngredientId: {ing.IngredientId}");
             }
 
             Console.WriteLine("All Ingredients:");
@@ -212,6 +212,14 @@ namespace FoodStore.Areas.Admin.Controllers
                 return NotFound("Food not found.");
             }
 
+            // Loại bỏ tất cả các nguyên liệu hiện tại liên quan đến FoodId từ cơ sở dữ liệu
+            var existingIngredients = await _foodIngredientRepository.GetIngredientsByFoodIdAsync(id);
+            foreach (var ingredient in existingIngredients)
+            {
+                await _foodIngredientRepository.DeleteAsync(ingredient.FoodId, ingredient.IngredientId);
+            }
+            Console.WriteLine($"All existing ingredients for FoodId {id} have been deleted.");
+
             // Loại bỏ các bản ghi trùng lặp trong danh sách `ingredients` dựa trên `IngredientId`
             var distinctIngredients = ingredients
                 .Where(i => i.IngredientId != 0) // Bỏ qua các hàng trống
@@ -221,14 +229,6 @@ namespace FoodStore.Areas.Admin.Controllers
 
             foreach (var ingredient in distinctIngredients)
             {
-                // Kiểm tra nếu FoodIngredient đã tồn tại trong cơ sở dữ liệu
-                var existingIngredient = await _foodIngredientRepository.GetByIdAsync(id, ingredient.IngredientId);
-                if (existingIngredient != null)
-                {
-                    Console.WriteLine($"Ingredient with FoodId: {id} and IngredientId: {ingredient.IngredientId} already exists. Skipping.");
-                    continue;
-                }
-
                 var newIngredient = new FoodIngredient
                 {
                     FoodId = id,
@@ -243,8 +243,6 @@ namespace FoodStore.Areas.Admin.Controllers
             // Chuyển hướng về Display thay vì Detail
             return RedirectToAction("Display", new { id });
         }
-
-
 
 
     }

@@ -12,7 +12,7 @@ namespace FoodStore.Repositories
         Task UpdateAsync(FoodIngredient foodIngredient);
         Task DeleteAsync(int foodId, int ingredientId);
 
-        Task<List<Ingredients>> GetIngredientsByFoodIdAsync(int foodId);
+        Task<List<FoodIngredient>> GetIngredientsByFoodIdAsync(int foodId);
         Task<List<FoodIngredient>> GetFoodIngredientsByFoodIdAsync(int foodId);
     }
 }
