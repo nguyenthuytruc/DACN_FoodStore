@@ -92,7 +92,16 @@ namespace FoodStore.Repositories
             await _context.SaveChangesAsync(); // Lưu thay đổi
             return true; // Thành công
         }
+
+
+        public async Task<List<FoodIngredient>> GetFoodIngredientsByFoodIdAsync(int foodId)
+        {
+            return await _context.FoodIngredient
+                .Where(fi => fi.FoodId == foodId)
+                .ToListAsync();
+        }
+
+
+
     }
-
-
 }

@@ -1,5 +1,6 @@
 ﻿using FoodStore.Models;
 using FoodStore.Repositories;
+using FoodStore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,16 +16,20 @@ namespace FoodStore.Areas.Admin.Controllers
         private readonly ITableRepository _tableRepository;
         private readonly ApplicationDbContext _context;
         private readonly IIngredientRepository _ingredientRepository;
+        private readonly OrderService _orderService;
 
         public OrderController(IOrderRepository orderRepository,
                                ITableRepository tableRepository,
                                ApplicationDbContext context,
-                               IIngredientRepository ingredientRepository)
+                               IIngredientRepository ingredientRepository,
+                               OrderService orderService
+                               )
         {
             _orderRepository = orderRepository;
             _tableRepository = tableRepository;
-            _context = context;
             _ingredientRepository = ingredientRepository;
+            _context = context;
+            _orderService = orderService;
         }
 
         [HttpGet]
@@ -43,11 +48,93 @@ namespace FoodStore.Areas.Admin.Controllers
             return View(order);
         }
 
+        //[HttpGet]
+        //public async Task<IActionResult> Accept(int id)
+        //{
+        //    var order = await _orderRepository.GetOrderById(id);
+        //    await _orderRepository.UpdateAsync(id);  // Cập nhật trạng thái order
+        //    return RedirectToAction("Index");
+        //}
+
+        //[HttpGet]
+        //public async Task<IActionResult> Accept(int id)
+        //{
+        //    var canAcceptOrder = await _orderService.CanAcceptOrderAsync(id);
+        //    if (!canAcceptOrder)
+        //    {
+        //        Console.WriteLine("Not enough ingredients to accept the order.");
+        //        return BadRequest("Không đủ nguyên liệu để chấp nhận đơn hàng.");
+        //    }
+
+        //    await _orderRepository.UpdateAsync(id); // Cập nhật trạng thái đơn hàng
+        //    return RedirectToAction("Index");
+        //}
+
         [HttpGet]
         public async Task<IActionResult> Accept(int id)
         {
+            // 1. Lấy thông tin Order
             var order = await _orderRepository.GetOrderById(id);
-            await _orderRepository.UpdateAsync(id);  // Cập nhật trạng thái order
+            if (order == null)
+            {
+                return NotFound("Order not found.");
+            }
+
+            // 2. Lấy tất cả OrderDetails theo OrderId
+            var orderDetails = await _context.OrderDetails
+                                              .Where(od => od.OrderId == id)
+                                              .ToListAsync();
+
+            // 3. Tính tổng số nguyên liệu cần thiết từ các FoodIngredient
+            var totalIngredientsNeeded = new Dictionary<int, int>();
+
+            foreach (var orderDetail in orderDetails)
+            {
+                var foodIngredients = await _context.FoodIngredient
+                                                    .Where(fi => fi.FoodId == orderDetail.FoodId)
+                                                    .ToListAsync();
+
+                foreach (var foodIngredient in foodIngredients)
+                {
+                    if (totalIngredientsNeeded.ContainsKey(foodIngredient.IngredientId))
+                    {
+                        totalIngredientsNeeded[foodIngredient.IngredientId] += foodIngredient.QuantityRequired;
+                    }
+                    else
+                    {
+                        totalIngredientsNeeded[foodIngredient.IngredientId] = foodIngredient.QuantityRequired;
+                    }
+                }
+            }
+
+            // 4. Kiểm tra số lượng trong kho có đủ không
+            foreach (var ingredientId in totalIngredientsNeeded.Keys)
+            {
+                var ingredient = await _context.Ingredients.FindAsync(ingredientId);
+                var requiredAmount = totalIngredientsNeeded[ingredientId];
+                var availableAmount = ingredient?.Quantity ?? 0;
+
+                if (ingredient == null || availableAmount < requiredAmount)
+                {
+                    var shortage = requiredAmount - availableAmount;
+                    Console.WriteLine($"Nguyên liệu ID {ingredientId} không đủ. Cần thêm: {shortage}. Có sẵn: {availableAmount}, Cần: {requiredAmount}");
+                    return BadRequest($"Không đủ nguyên liệu ID {ingredientId}. Cần thêm {shortage} để chấp nhận đơn hàng.");
+                }
+            }
+
+            // 5. Nếu đủ nguyên liệu, tiến hành trừ kho
+            foreach (var ingredientId in totalIngredientsNeeded.Keys)
+            {
+                var ingredient = await _context.Ingredients.FindAsync(ingredientId);
+                ingredient.Quantity -= totalIngredientsNeeded[ingredientId];
+                _context.Ingredients.Update(ingredient);
+            }
+
+            // 6. Cập nhật trạng thái order và lưu thay đổi
+            order.Status = true;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+
             return RedirectToAction("Index");
         }
 

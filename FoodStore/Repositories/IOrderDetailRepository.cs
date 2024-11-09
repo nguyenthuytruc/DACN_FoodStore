@@ -16,5 +16,8 @@ public interface IOrderDetailRepository
 
     // Ko đủ nguyên liệu
     Task<int> CountNotReadyAsync();
-    
+
+    Task<OrderDetail> GetOrderDetailAsync(int orderId, int foodId);
+    Task UpdateOrderDetailAsync(OrderDetail orderDetail);
+    Task<List<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId); // Lấy tất cả chi tiết của đơn hàng
 }

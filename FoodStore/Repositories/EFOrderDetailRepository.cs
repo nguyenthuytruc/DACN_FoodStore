@@ -57,4 +57,26 @@ public class EFOrderDetailRepository : IOrderDetailRepository
     {
         return await _context.OrderDetails.CountAsync(od => od.Status == -1);
     }
+
+    public async Task<OrderDetail> GetOrderDetailAsync(int orderId, int foodId)
+    {
+        // Lấy một chi tiết đơn hàng theo ID của đơn hàng và món ăn
+        return await _context.OrderDetails
+            .FirstOrDefaultAsync(od => od.OrderId == orderId && od.FoodId == foodId);
+    }
+
+    public async Task UpdateOrderDetailAsync(OrderDetail orderDetail)
+    {
+        _context.OrderDetails.Update(orderDetail);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId)
+    {
+        return await _context.OrderDetails
+            .Where(od => od.OrderId == orderId)
+            .ToListAsync();
+    }
+
+    
 }

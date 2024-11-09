@@ -1,5 +1,6 @@
 using FoodStore.Models;
 using FoodStore.Repositories;
+using FoodStore.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<IFoodCategoryRepository, EFFoodCategoryRepository>();
 builder.Services.AddScoped<IFoodRepository, EFFoodRepository>();
 builder.Services.AddScoped<IInvoiceRepository, EFInvoiceRepository>();
