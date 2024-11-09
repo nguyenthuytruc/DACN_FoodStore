@@ -103,24 +103,24 @@
 
         const newRow = document.createElement("tr");
         newRow.innerHTML = `
-                <td>
-                    <select name="ingredients[${ingredientIndex}].IngredientId" class="form-control">
-    @foreach (var ingredient in allIngredients)
-    {
-                                <option value="@ingredient.Id">@ingredient.Name</option>
-    }
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="ingredients[${ingredientIndex}].Unit" class="form-control" readonly />
-                </td>
-                <td>
-                    <input type="number" name="ingredients[${ingredientIndex}].QuantityRequired" class="form-control" min="0" />
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger" onclick="removeIngredientRow(this)">Xóa</button>
-                </td>
-            `;
+            <td>
+                <select name="ingredients[${ingredientIndex}].IngredientId" class="form-control">
+                    @foreach (var ingredient in allIngredients)
+                    {
+                        <option value="@ingredient.Id">@ingredient.Name</option>
+                    }
+                </select>
+            </td>
+            <td>
+                <input type="text" name="ingredients[${ingredientIndex}].Unit" class="form-control" readonly />
+            </td>
+            <td>
+                <input type="number" name="ingredients[${ingredientIndex}].QuantityRequired" class="form-control" min="0" />
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger" onclick="removeIngredientRow(this)">Xóa</button>
+            </td>
+        `;
         tableBody.appendChild(newRow);
         ingredientIndex++;
     }
@@ -130,4 +130,3 @@
         row.remove();
     }
 </script>
-
