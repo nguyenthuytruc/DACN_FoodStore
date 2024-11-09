@@ -12,5 +12,10 @@ namespace FoodStore.Repositories
         Task UpdateAsync(Ingredients ingredient); // Cập nhật nguyên liệu
         Task DeleteAsync(int id); // Xóa nguyên liệu
         //Task<bool> DeductIngredientsAsync(int ingredientId, int quantity); // Giảm số lượng nguyên liệu
+        Task<IEnumerable<Ingredients>> GetAllIngredientsAsync();
+        Task AddFoodIngredientAsync(FoodIngredient foodIngredient);
+
+        Task<bool> DeductIngredientsAsync(Dictionary<int, int> ingredientsToDeduct); // Trừ nguyên liệu
+
     }
 }
