@@ -33,11 +33,13 @@ namespace FoodStore.Areas.Kitchen.Controllers
             // Lọc các mục chưa thanh toán và chưa hoàn thành
             acceptedOrderDetails = acceptedOrderDetails
                 .Where(od => !od.Order.StatusPay && od.Status < 2)
-                .OrderBy(od => od.Status)    // Sắp xếp theo Status tăng dần
-                .ThenBy(od => od.FoodId)     // Sau đó sắp xếp theo FoodId
+                 .OrderBy(od => od.Order.Created)
+                //.OrderBy(od => od.Status)    // Sắp xếp theo Status tăng dần
+                //.ThenBy(od => od.FoodId)     // Sau đó sắp xếp theo FoodId
                 .ToList();
 
             return View(acceptedOrderDetails);
+
         }
 
 

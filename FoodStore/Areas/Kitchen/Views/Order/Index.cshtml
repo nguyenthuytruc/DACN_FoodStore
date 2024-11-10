@@ -15,7 +15,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var orderDetail in Model.OrderBy(od => od.Status == 2).ThenBy(od => od.Order.Created))
+                @foreach (var orderDetail in Model.OrderBy(od => od.Order.Created))
                 {
                     <tr>
                         <td>@orderDetail.Order.TableId</td>
