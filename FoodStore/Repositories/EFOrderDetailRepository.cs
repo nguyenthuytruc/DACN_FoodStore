@@ -40,18 +40,6 @@ public class EFOrderDetailRepository : IOrderDetailRepository
         await _context.SaveChangesAsync();
     }
 
-    // Đếm số món ăn chưa hoàn thành (giả sử Status = 0 là chưa hoàn thành)
-    public async Task<int> CountUnfinishedAsync()
-    {
-        return await _context.OrderDetails.CountAsync(od => od.Status == 0);
-    }
-
-    // Đếm số món ăn chờ bàn giao (giả sử Status = 1 là chờ bàn giao)
-    public async Task<int> CountWaitingForDeliveryAsync()
-    {
-        return await _context.OrderDetails.CountAsync(od => od.Status == 1);
-    }
-
     // Đếm số món ăn chờ bàn giao (giả sử Status = -1 là ko đủ nguyên liệu)
     public async Task<int> CountNotReadyAsync()
     {
@@ -77,6 +65,20 @@ public class EFOrderDetailRepository : IOrderDetailRepository
             .Where(od => od.OrderId == orderId)
             .ToListAsync();
     }
+    public async Task<int> CountUnfinishedAsync()
+    {
+        return await _context.OrderDetails
+            .Where(od => !od.Order.StatusPay)
+            .Where(od => od.Status != 2)
+            .CountAsync();
+    }
 
-    
+    // Thêm phương thức để đếm số lượng món ăn chờ bàn giao
+    public async Task<int> CountWaitingForDeliveryAsync()
+    {
+        return await _context.OrderDetails
+            .Where(od => !od.Order.StatusPay && od.Status == 2)
+            .CountAsync();
+    }
+
 }
