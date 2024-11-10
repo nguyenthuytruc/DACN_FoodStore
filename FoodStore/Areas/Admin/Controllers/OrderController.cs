@@ -48,92 +48,69 @@ namespace FoodStore.Areas.Admin.Controllers
             return View(order);
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Accept(int id)
-        //{
-        //    var order = await _orderRepository.GetOrderById(id);
-        //    await _orderRepository.UpdateAsync(id);  // Cập nhật trạng thái order
-        //    return RedirectToAction("Index");
-        //}
-
-        //[HttpGet]
-        //public async Task<IActionResult> Accept(int id)
-        //{
-        //    var canAcceptOrder = await _orderService.CanAcceptOrderAsync(id);
-        //    if (!canAcceptOrder)
-        //    {
-        //        Console.WriteLine("Not enough ingredients to accept the order.");
-        //        return BadRequest("Không đủ nguyên liệu để chấp nhận đơn hàng.");
-        //    }
-
-        //    await _orderRepository.UpdateAsync(id); // Cập nhật trạng thái đơn hàng
-        //    return RedirectToAction("Index");
-        //}
 
         [HttpGet]
-        public async Task<IActionResult> Accept(int id)
+public async Task<IActionResult> Accept(int id)
+{
+    var order = await _orderRepository.GetOrderById(id);
+    if (order == null)
+    {
+        return RedirectToAction("Index");
+    }
+
+    var orderDetails = await _context.OrderDetails
+                                      .Where(od => od.OrderId == id)
+                                      .ToListAsync();
+
+    var totalIngredientsNeeded = new Dictionary<int, int>();
+    foreach (var orderDetail in orderDetails)
+    {
+        var foodIngredients = await _context.FoodIngredient
+                                            .Where(fi => fi.FoodId == orderDetail.FoodId)
+                                            .ToListAsync();
+
+        foreach (var foodIngredient in foodIngredients)
         {
-            var order = await _orderRepository.GetOrderById(id);
-            if (order == null)
+            if (totalIngredientsNeeded.ContainsKey(foodIngredient.IngredientId))
             {
-                return RedirectToAction("Index");
+                totalIngredientsNeeded[foodIngredient.IngredientId] += foodIngredient.QuantityRequired * orderDetail.Quantity;
             }
-
-            var orderDetails = await _context.OrderDetails
-                                              .Where(od => od.OrderId == id)
-                                              .ToListAsync();
-
-            var totalIngredientsNeeded = new Dictionary<int, int>();
-            foreach (var orderDetail in orderDetails)
+            else
             {
-                var foodIngredients = await _context.FoodIngredient
-                                                    .Where(fi => fi.FoodId == orderDetail.FoodId)
-                                                    .ToListAsync();
-
-                foreach (var foodIngredient in foodIngredients)
-                {
-                    if (totalIngredientsNeeded.ContainsKey(foodIngredient.IngredientId))
-                    {
-                        totalIngredientsNeeded[foodIngredient.IngredientId] += foodIngredient.QuantityRequired * orderDetail.Quantity;
-                    }
-                    else
-                    {
-                        totalIngredientsNeeded[foodIngredient.IngredientId] = foodIngredient.QuantityRequired * orderDetail.Quantity;
-                    }
-                }
+                totalIngredientsNeeded[foodIngredient.IngredientId] = foodIngredient.QuantityRequired * orderDetail.Quantity;
             }
-
-            var insufficientIngredients = new List<string>();
-            foreach (var ingredientId in totalIngredientsNeeded.Keys)
-            {
-                var ingredient = await _context.Ingredients.FindAsync(ingredientId);
-                var requiredAmount = totalIngredientsNeeded[ingredientId];
-                var availableAmount = ingredient?.Quantity ?? 0;
-
-                if (ingredient == null || availableAmount < requiredAmount)
-                {
-                    var shortage = requiredAmount - availableAmount;
-                    insufficientIngredients.Add($"Nguyên liệu ID {ingredientId} không đủ. Cần thêm: {shortage}. Có sẵn: {availableAmount}, Cần: {requiredAmount}");
-                }
-            }
-
-            if (insufficientIngredients.Any())
-            {
-                var errorMsg = string.Join("<br/>", insufficientIngredients);
-                ViewBag.ErrorMessage = errorMsg;  // TODO use view bag or similar to show message on GUI
-                Console.WriteLine("ErrorMessage set in ViewBag: " + ViewBag.ErrorMessage);
-                return BadRequest(errorMsg);
-                // return RedirectToAction("Index");
-            }
-
-            order.Status = true;
-            _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
-
-            ViewBag.SuccessMessage = "Order accepted successfully!";
-
-            return RedirectToAction("Index");
         }
+    }
+
+    var insufficientIngredients = new List<string>();
+    foreach (var ingredientId in totalIngredientsNeeded.Keys)
+    {
+        var ingredient = await _context.Ingredients.FindAsync(ingredientId);
+        var requiredAmount = totalIngredientsNeeded[ingredientId];
+        var availableAmount = ingredient?.Quantity ?? 0;
+
+        if (ingredient == null || availableAmount < requiredAmount)
+        {
+            var ingredientName = ingredient?.Name ?? "Không xác định";
+            var shortage = requiredAmount - availableAmount;
+                    insufficientIngredients.Add($"Nguyên liệu '{ingredientName}' không đủ. Cần: {requiredAmount}, Có sẵn: {availableAmount}, Còn thiếu: {shortage}");
+                }
+            }
+
+    if (insufficientIngredients.Any())
+    {
+        ViewBag.ErrorMessage = string.Join("<br/>", insufficientIngredients);
+        return View("ErrorAccept");
+    }
+
+    order.Status = true;
+    _context.Orders.Update(order);
+    await _context.SaveChangesAsync();
+
+    return RedirectToAction("Index");
+}
+
+
 
         [HttpGet]
         [Route("/Admin/Order/Detail/{id:int}")]
