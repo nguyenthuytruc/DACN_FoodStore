@@ -40,15 +40,16 @@
                     <td>@ingredient.Unit</td>
                     <td>@ingredient.Quantity</td>
                     <td>
-                        @if (ingredient.IsDeleted)
+                        @if (ingredient.Quantity == 0)
                         {
-                            <span class="text-danger">Đã xóa</span>
+                            <span class="text-danger">Hết</span>
                         }
                         else
                         {
-                            <span class="text-success">Còn lại</span>
+                            <span class="text-success">Còn</span>
                         }
                     </td>
+
                     <td>
                         <a href="@Url.Action("Update", "Ingredient", new { id = ingredient.Id })" class="btn btn-primary">Chỉnh sửa</a>
                         <a href="@Url.Action("Delete", "Ingredient", new { id = ingredient.Id })" class="btn btn-danger" >Xóa</a>

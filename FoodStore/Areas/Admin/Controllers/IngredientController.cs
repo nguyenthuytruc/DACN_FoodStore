@@ -38,36 +38,6 @@ namespace FoodStore.Areas.Admin.Controllers
             ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
             return View("Add"); // Trả về view Add.cshtml
         }
-
-        //// POST: Admin/Ingredient/Create
-        //[HttpPost]
-        //public async Task<IActionResult> Add(Ingredients ing)
-        //{
-        //    _logger.LogInformation("///////////// IN Task<IActionResult> Add(Ingredients ing)");
-        //    _logger.LogInformation($"Is valid: {ModelState.IsValid}");
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        var newIngredient = new Ingredients
-        //        {
-        //            Name = ing.Name,
-        //            Image = ing.Image,
-        //            Unit = ing.Unit,
-        //            Quantity = ing.Quantity,
-        //            IsDeleted = false
-        //        };
-
-        //        await _ingredientRepository.AddAsync(newIngredient);
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToAction("Index");
-        //    }
-
-        //    // If model is invalid, add a custom error message
-        //    ModelState.AddModelError(string.Empty, "Thông tin nhập vào không hợp lệ. Vui lòng kiểm tra lại.");
-        //    ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
-        //    return View(ing);
-        //}
-
         [HttpPost]
         public async Task<IActionResult> Add(Ingredients ing, IFormFile Image)
         {
@@ -178,41 +148,6 @@ namespace FoodStore.Areas.Admin.Controllers
             ViewBag.FoodList = new SelectList(_context.Foods.Where(f => !f.IsDeleted), "Id", "Name");
             return View(ingredient);
         }
-
-
-        // POST: Admin/Ingredient/Update/5
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Update(int id, Ingredients ingredient)
-        //{
-        //    if (id != ingredient.Id)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        var existingIngredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
-        //        if (existingIngredient != null)
-        //        {
-        //            existingIngredient.Name = ingredient.Name;
-        //            existingIngredient.Image = ingredient.Image;
-        //            existingIngredient.Quantity = ingredient.Quantity;
-        //            existingIngredient.Unit = ingredient.Unit;
-
-        //            _context.Update(existingIngredient);
-        //            await _context.SaveChangesAsync(); // Sử dụng SaveChangesAsync
-        //            return RedirectToAction(nameof(Index));
-        //        }
-        //        return NotFound();
-        //    }
-
-        //    // Cập nhật lại danh sách món ăn nếu có lỗi
-        //    ViewBag.FoodList = new SelectList(_context.Foods.Where(f => !f.IsDeleted), "Id", "Name");
-        //    return View(ingredient);
-        //}
-
-        // GET: Admin/Ingredient/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
             var ingredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
