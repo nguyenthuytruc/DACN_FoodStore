@@ -9,6 +9,6 @@ namespace FoodStore.Models
 
         [Required, StringLength(100)]
         public string Name { get; set; }
-        public List<Food> Foods { get; set; }
+        public virtual ICollection<Food> Foods { get; set; }
     }
 }

@@ -1,150 +1,148 @@
-﻿using FoodStore.Models;
+﻿using AutoMapper;
+using FoodStore.DTO;
+using FoodStore.Models;
 using FoodStore.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
 
 namespace FoodStore.Controllers
 {
-    public class FoodController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class FoodController : ControllerBase
     {
         private readonly IFoodRepository _foodRepository;
         private readonly IFoodCategoryRepository _foodcategoryRepository;
+        private readonly IMapper _mapper;
 
-        public FoodController(IFoodRepository foodRepository, IFoodCategoryRepository foodcategoryRepository)
-
+        public FoodController(IFoodRepository foodRepository, IFoodCategoryRepository foodcategoryRepository, IMapper mapper)
         {
             _foodRepository = foodRepository;
             _foodcategoryRepository = foodcategoryRepository;
+            _mapper = mapper;
         }
 
-        // Hiển thị danh sách sản phẩm
-        public async Task<IActionResult> Index()
+        // Get all foods
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Food>>> GetFoods()
         {
             var foods = await _foodRepository.GetAllAsync();
-            return View(foods);
-        }
-        // Hiển thị form thêm sản phẩm mới
-        public async Task<IActionResult> Add()
-        {
-            var foodcategories = await _foodcategoryRepository.GetAllAsync();
-            ViewBag.FoodCategories = new SelectList(foodcategories, "Id", "Name");
-            return View();
+            // map từ food sang foodDTO
+            return Ok(_mapper.Map<List<FoodDTO>>(foods));
         }
 
-        // Xử lý thêm sản phẩm mới
-        [HttpPost]
-        public async Task<IActionResult> Add(Food food, IFormFile imageUrl)
+        // Get food by id
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Food>> GetFood(int id)
         {
-            if (ModelState.IsValid)
+            var food = await _foodRepository.GetByIdAsync(id);
+            if (food == null)
             {
-                if (imageUrl != null)
-                {
-                    // Lưu hình ảnh đại diện tham khảo bài 02 hàm SaveImage
-                    food.Image = await SaveImage(imageUrl);
-                }
-                await _foodRepository.AddAsync(food);
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            // Nếu ModelState không hợp lệ, hiển thị form với dữ liệu đã nhập
-            var foodcategories = await _foodcategoryRepository.GetAllAsync();
-            ViewBag.FoodCategories = new SelectList(foodcategories, "Id", "Name");
-            return View(food);
+            return Ok(_mapper.Map<FoodDTO>(food));
         }
 
-        // Viết thêm hàm SaveImage (tham khảo bài 02)
+        // Get list food by id category
+        [HttpGet("category/{id}")]
+        public async Task<ActionResult<Food>> GetListFoodByCategory(int id)
+        {
+            var food = await _foodRepository.GetListFoodByIdAsync(id);
+            if (food == null)
+            {
+                return NotFound();
+            }
+            return Ok(_mapper.Map<List<FoodDTO>> (food));
+        }
+
+        // Add a new food
+        [HttpPost]
+        public async Task<ActionResult<Food>> AddFood([FromForm] Food food, [FromForm] IFormFile imageUrl)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (imageUrl != null)
+            {
+                food.Image = await SaveImage(imageUrl);
+            }
+
+            await _foodRepository.AddAsync(food);
+            return CreatedAtAction(nameof(GetFood), new { id = food.Id }, food);
+        }
+
+        // Update an existing food
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateFood(int id, [FromForm] Food food, [FromForm] IFormFile imageUrl)
+        {
+            if (id != food.Id)
+            {
+                return BadRequest();
+            }
+
+            ModelState.Remove("ImageUrl"); // Ignore model validation for imageUrl
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var existingFood = await _foodRepository.GetByIdAsync(id);
+            if (existingFood == null)
+            {
+                return NotFound();
+            }
+
+            // Update image if a new one is provided
+            if (imageUrl == null)
+            {
+                food.Image = existingFood.Image;
+            }
+            else
+            {
+                food.Image = await SaveImage(imageUrl);
+            }
+
+            // Update food details
+            existingFood.Name = food.Name;
+            existingFood.Price = food.Price;
+            existingFood.FoodCategoryId = food.FoodCategoryId;
+            existingFood.Image = food.Image;
+            existingFood.Status = food.Status;
+            existingFood.Type = food.Type;
+
+            await _foodRepository.UpdateAsync(existingFood);
+
+            return NoContent(); // Indicating that the request was successful and there's no content to return
+        }
+
+        // Delete a food
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFood(int id)
+        {
+            var food = await _foodRepository.GetByIdAsync(id);
+            if (food == null)
+            {
+                return NotFound();
+            }
+
+            await _foodRepository.DeleteAsync(id);
+            return NoContent();
+        }
+
+        // Save image helper method
         private async Task<string> SaveImage(IFormFile image)
         {
-            var savePath = Path.Combine("wwwroot/images", image.FileName); //
+            var savePath = Path.Combine("wwwroot/images", image.FileName);
 
             using (var fileStream = new FileStream(savePath, FileMode.Create))
             {
                 await image.CopyToAsync(fileStream);
             }
-            return "/images/" + image.FileName; // Trả về đường dẫn tương đối
+
+            return "/images/" + image.FileName; // Return relative path
         }
-        // Hiển thị thông tin chi tiết sản phẩm
-        public async Task<IActionResult> Display(int id)
-        {
-            var food = await _foodRepository.GetByIdAsync(id);
-            if (food == null)
-            {
-                return NotFound();
-            }
-            return View(food);
-        }
-
-        // Hiển thị form cập nhật sản phẩm
-        public async Task<IActionResult> Update(int id)
-        {
-            var food = await _foodRepository.GetByIdAsync(id);
-            if (food == null)
-            {
-                return NotFound();
-            }
-            var foodcategories = await _foodcategoryRepository.GetAllAsync();
-            ViewBag.FoodCategories = new SelectList(foodcategories, "Id", "Name", food.FoodCategoryId);
-
-            return View(food);
-        }
-
-        // Xử lý cập nhật sản phẩm
-        [HttpPost]
-        public async Task<IActionResult> Update(int id, Food food, IFormFile imageUrl)
-
-        {
-            ModelState.Remove("ImageUrl"); // Loại bỏ xác thực ModelState cho ImageUrl
-
-            if (id != food.Id)
-            {
-                return NotFound();
-            }
-            if (ModelState.IsValid)
-            {
-                var existingFood= await
-
-                _foodRepository.GetByIdAsync(id); // Giả định có phương thức GetByIdAsync
-                                                     // Giữ nguyên thông tin hình ảnh nếu không có hình mới được tải lên
-
-                if (imageUrl == null)
-                {
-                    food.Image = existingFood.Image;
-                }
-                else
-                {
-                    // Lưu hình ảnh mới
-                    food.Image = await SaveImage(imageUrl);
-                }
-                // Cập nhật các thông tin khác của sản phẩm
-                existingFood.Name = food.Name;
-                existingFood.Price = food.Price;
-                existingFood.FoodCategoryId = food.FoodCategoryId;
-                existingFood.Image = food.Image;
-                existingFood.Status = food.Status;
-                existingFood.Type = food.Type;
-                await _foodRepository.UpdateAsync(existingFood);
-                return RedirectToAction(nameof(Index));
-            }
-            var foodcategories = await _foodcategoryRepository.GetAllAsync();
-            ViewBag.FoodCategories = new SelectList(foodcategories, "Id", "Name");
-            return View(food);
-        }
-        // Hiển thị form xác nhận xóa sản phẩm
-        public async Task<IActionResult> Delete(int id)
-        {
-            var food = await _foodRepository.GetByIdAsync(id);
-            if (food == null)
-            {
-                return NotFound();
-            }
-            return View(food);
-        }
-        // Xử lý xóa sản phẩm
-        [HttpPost, ActionName("DeleteConfirmed")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            await _foodRepository.DeleteAsync(id);
-            return RedirectToAction(nameof(Index));
-        }
-
     }
 }

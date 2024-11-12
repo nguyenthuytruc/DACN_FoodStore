@@ -1,4 +1,22 @@
 ﻿@model List<FoodStore.Models.OrderDetail>
+@* @using Microsoft.AspNetCore.SignalR
+@inject IHubContext<OrderHub> OrderHub *@
+
+@* @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+    <script type="text/javascript">
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .build();
+
+        // Nhận thông báo từ server và tải lại danh sách món ăn
+        connection.on("ReceiveOrderUpdate", () => {
+            location.reload();
+        });
+
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
+} *@
 
 <div class="container py-2">
     <h1 style="text-align: center;">DANH SÁCH MÓN ĂN CẦN LÀM</h1>
