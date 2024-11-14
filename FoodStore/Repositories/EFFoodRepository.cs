@@ -18,12 +18,16 @@ namespace FoodStore.Repositories
         }
         public async Task<Food> GetByIdAsync(int id)
         {
-            return await _context.Foods.Include("FoodCategorys").FirstOrDefaultAsync(p => p.Id == id);
+            return await _context.Foods.Include("FoodCategorys").FirstOrDefaultAsync(p => p.Id == id && p.IsDeleted == false);
         }
 
         public async Task<IEnumerable<Food>> GetListFoodByIdAsync(int idCategory)
         {
-            return await _context.Foods.Include("FoodCategorys").Where(f => f.FoodCategoryId == idCategory).ToListAsync();
+            return await _context.Foods
+                        .Include("FoodCategorys")
+                        .Where(f => f.FoodCategoryId == idCategory && f.IsDeleted == false)
+                        .ToListAsync();
+
         }
         public async Task AddAsync(Food food)
         {

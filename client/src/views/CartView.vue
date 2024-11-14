@@ -1,8 +1,9 @@
 <template>
+	
 	<div class="cart-container">
 		<div class="cart-header">
 			<router-link :to="`/order/${idTable}`">
-				<button class="btn btn-sm btn-primary">
+				<button class="btn-back">
 					<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
 				</button>
 			</router-link>
@@ -13,40 +14,176 @@
 			<ul v-if="cartItems.length > 0" class="cart-list">
 				<li v-for="item in cartItems" :key="item.id" class="cart-item">
 					<div class="item-info">
-						<div>{{ item.name }}</div>
-						<div>Giá: {{ item.price * item.quantity }} VND</div>
+						<div class="item-name">{{ item.name }}</div>
+						<div class="item-price">{{ formatPrice( item.price * item.quantity ) }}</div>
 					</div>
 					<div class="quantity-controls">
-						<button
-							@click="decreaseQuantity(item)"
-							:disabled="item.quantity === 1"
-							class="btn btn-sm btn-secondary">
-							-
-						</button>
+						<button @click="decreaseQuantity(item)" :disabled="item.quantity === 1" class="btn-quantity">-</button>
 						<span>{{ item.quantity }}</span>
-						<button
-							@click="increaseQuantity(item)"
-							class="btn btn-sm btn-secondary">
-							+
-						</button>
+						<button @click="increaseQuantity(item)" class="btn-quantity">+</button>
 					</div>
-					<button
-						class="btn btn-sm btn-danger"
-						@click="removeItem(item.id)">
-						<i class="fa fa-trash" aria-hidden="true"></i>
-					</button>
+					<button class="btn-delete" @click="removeItem(item.id)"><i class="fa-solid fa-trash"></i></button>
 				</li>
 			</ul>
 			<p v-else>Giỏ hàng trống</p>
-			<button
-				class="w-100 btn btn-primary btn-submit"
-				v-on:click="submitOrder()">
-				Xác nhận đơn đặt hàng
-			</button>
+			<div class="total-price">
+				<span>Tổng Cộng:</span> <span class="mx-2">{{ formatPrice(  cartItems.reduce((total, item) => total + item.price * item.quantity, 0) ) }}</span> 
+			</div>
+			<div class="cart-buttons">
+			
+				<button class="btn-confirm " @click="submitOrder()">Thanh Toán</button>
+			</div>
 		</div>
 	</div>
 </template>
 
+<style scoped>
+.cart-container {
+	max-width: 500px;
+	margin: auto;
+	padding: 20px;
+	background-color: #fff;
+	border-radius: 8px;
+	box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+	font-family: Arial, sans-serif;
+}
+
+.cart-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
+}
+
+h4 {
+	color: #333;
+	font-weight: 600;
+	margin: 0;
+}
+
+h5 {
+	margin-bottom: 10px;
+	font-size: 1.1em;
+	color: #444;
+}
+
+.cart-content {
+	display: flex;
+	flex-direction: column;
+}
+
+.cart-list {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.cart-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px;
+	border-bottom: 1px solid #ddd;
+}
+
+.item-info {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	margin-right: 10px;
+}
+
+.item-name {
+	font-weight: bold;
+}
+
+.item-price {
+	color: #888;
+	margin-top: 4px;
+}
+
+.quantity-controls {
+	display: flex;
+	align-items: center;
+}
+
+.btn-quantity {
+	background-color: #e0e0e0;
+	border: none;
+	padding: 4px 8px;
+	margin: 0 5px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+}
+
+.btn-quantity:disabled {
+	background-color: #ccc;
+}
+
+.btn-delete {
+	background-color: #e74c3c;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	padding: 4px 8px;
+	font-size: 12px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.btn-delete:hover {
+	background-color: #c0392b;
+}
+
+.total-price {
+	display: flex;
+	justify-content: flex-end;
+	font-size: 16px;
+	font-weight: bold;
+	margin: 15px 0;
+}
+
+.cart-buttons {
+	display: flex;
+	justify-content: space-between;
+}
+
+.btn-cancel {
+	background-color: #ddd;
+	color: #333;
+	border: none;
+	padding: 8px 16px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.btn-confirm {
+	background-color: #3498db;
+	color: white;
+	border: none;
+	padding: 8px 16px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.btn-back {
+	background: none;
+	border: none;
+	color: #3498db;
+	cursor: pointer;
+	font-size: 20px;
+}
+
+.btn-confirm:hover {
+	background-color: #2980b9;
+}
+
+.btn-cancel:hover {
+	background-color: #bbb;
+}
+
+</style>
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
@@ -167,7 +304,7 @@ async function submitOrder() {
 
 			// Thêm thông tin order vào lịch sử
 			orderHistory.push({
-				orderId: orderInfo.id, // Giả sử `id` là mã đơn hàng từ server
+				orderId: orderInfo.id, // Giả sử id là mã đơn hàng từ server
 				tableId: orderDTO.tableId,
 				totalPrice: orderDTO.totalPrice,
 				date: new Date().toISOString(), // Thời gian hiện tại khi đặt
@@ -204,86 +341,16 @@ async function submitOrder() {
 	} catch (error) {
 		console.error("Lỗi khi gửi đơn hàng:", error);
 	}
-}
+};
+
+function formatPrice(price) {
+      // Định dạng giá tiền theo VND
+      return price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+};
+
 
 // Khởi tạo dữ liệu khi component được mounted
 onMounted(async () => {
 	await getCartItems();
 });
 </script>
-
-<style scoped>
-.cart-container {
-	max-width: 600px;
-	margin: auto;
-	padding: 20px;
-	background-color: #fff;
-	border-radius: 8px;
-	box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-h4 {
-	color: #333;
-	text-align: center;
-	margin-bottom: 20px;
-	font-weight: 600;
-}
-
-.cart-content {
-	height: 100vh;
-	display: flex;
-	flex-direction: column;
-}
-
-.cart-list {
-	list-style-type: none;
-	padding: 0;
-	margin: 0;
-	min-height: 80vh;
-}
-
-.cart-item {
-	padding: 10px;
-	border-bottom: 1px solid #ddd;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	background-color: #f8f9fa;
-	border-radius: 6px;
-	margin-bottom: 10px;
-}
-
-.item-info {
-	flex-grow: 1;
-}
-
-.quantity-controls {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-}
-
-.quantity-controls button {
-	padding: 5px;
-}
-
-.quantity-controls span {
-	font-weight: bold;
-	padding: 0 10px;
-}
-
-.cart-item button.btn-danger {
-	font-size: 12px;
-	border: none;
-	background-color: #e74c3c;
-	color: #fff;
-	border-radius: 4px;
-	cursor: pointer;
-	transition: background-color 0.3s;
-	margin-left: 8px;
-}
-
-.cart-item button.btn-danger:hover {
-	background-color: #c0392b;
-}
-</style>

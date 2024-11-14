@@ -85,6 +85,12 @@ async function searchFood() {
   }, 2000);
 
 }
+
+function formatPrice(price) {
+      // Định dạng giá tiền theo VND
+      return price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+};
+
 </script>
 
 <template>
@@ -138,7 +144,7 @@ async function searchFood() {
 							alt="Food Image"
 							class="food-image" />
 						<h5>{{ food.name }}</h5>
-						<p>{{ food.price }} VND</p>
+						<p>{{ formatPrice(food.price) }}</p>
 						<button
 							class="btn btn-sm btn-primary w-50"
 							@click="addToCart(food.id)">
@@ -154,8 +160,10 @@ async function searchFood() {
 </template>
 
 <style scoped>
+
+
 .order--wrapper {
-	padding: 16px;
+	padding: 8px;
 }
 
 .order--header {
@@ -191,13 +199,16 @@ async function searchFood() {
 }
 
 .food h5 {
-	font-size: 1.1em;
-	margin-bottom: 8px;
+	font-size: 1em;
+	color: #555;
+	padding: 4px 0;
+	height: 25px;
 }
 
 .food p {
 	font-size: 1em;
 	color: #555;
+	padding-top: 10%;
 }
 
 .food button {
