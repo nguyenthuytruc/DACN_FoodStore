@@ -55,6 +55,14 @@ namespace FoodStore.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<List<FoodIngredient>> GetIngredientsByFoodIdAsync(int foodId)
+        {
+            return await _context.FoodIngredient
+                .Where(fi => fi.FoodId == foodId)
+                .ToListAsync();
+        }
+
         public async Task<bool> DeductIngredientsAsync(int foodId, int quantity)
         {
             // Lấy danh sách nguyên liệu cho món ăn
@@ -83,5 +91,16 @@ namespace FoodStore.Repositories
             await _context.SaveChangesAsync(); // Lưu thay đổi
             return true; // Thành công
         }
+
+
+        public async Task<List<FoodIngredient>> GetFoodIngredientsByFoodIdAsync(int foodId)
+        {
+            return await _context.FoodIngredient
+                .Where(fi => fi.FoodId == foodId)
+                .ToListAsync();
+        }
+
+
+
     }
 }

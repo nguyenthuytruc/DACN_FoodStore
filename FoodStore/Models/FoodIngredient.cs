@@ -6,10 +6,13 @@ namespace FoodStore.Models
     public class FoodIngredient
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Xác định Id là cột tự động tăng
         public int Id { get; set; } // Khóa chính
 
         public int FoodId { get; set; }
         public int IngredientId { get; set; }
+
+        public int QuantityRequired { get; set; }
 
         // Điều hướng đến Food
         [ForeignKey("FoodId")]

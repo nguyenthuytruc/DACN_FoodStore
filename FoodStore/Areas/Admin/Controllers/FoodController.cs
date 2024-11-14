@@ -1,8 +1,10 @@
 ﻿using FoodStore.Models;
 using FoodStore.Repositories;
+using FoodStore.Services.Admin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace FoodStore.Areas.Admin.Controllers
 {
@@ -12,12 +14,27 @@ namespace FoodStore.Areas.Admin.Controllers
     {
         private readonly IFoodRepository _foodRepository;
         private readonly IFoodCategoryRepository _foodcategoryRepository;
+        private readonly ApplicationDbContext _context;
+        private readonly IIngredientRepository _ingredientRepository;
+        private readonly IFoodIngredientRepository _foodIngredientRepository;
+        private readonly IFoodService _foodService;
 
-        public FoodController(IFoodRepository foodRepository, IFoodCategoryRepository foodcategoryRepository)
+        public FoodController(
+            IFoodRepository foodRepository, 
+            IFoodCategoryRepository foodcategoryRepository,
+            ApplicationDbContext context,
+            IIngredientRepository ingredientRepository,
+            IFoodIngredientRepository foodIngredientRepository,
+            IFoodService foodService
+        )
 
         {
             _foodRepository = foodRepository;
             _foodcategoryRepository = foodcategoryRepository;
+            _context = context;
+            _ingredientRepository = ingredientRepository;
+            _foodIngredientRepository = foodIngredientRepository;
+            _foodService = foodService;
         }
 
       
@@ -65,7 +82,7 @@ namespace FoodStore.Areas.Admin.Controllers
             }
             return "/images/" + image.FileName;
         }
-        
+
         public async Task<IActionResult> Display(int id)
         {
             var food = await _foodRepository.GetByIdAsync(id);
@@ -73,8 +90,34 @@ namespace FoodStore.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
+            // Lấy danh sách nguyên liệu thuộc về food có Id = id
+            var foodIngredients = await _foodIngredientRepository.GetIngredientsByFoodIdAsync(id);
+            var allIngredients = await _ingredientRepository.GetAllIngredientsAsync();
+
+            // Ghi log để kiểm tra danh sách lấy được
+            Console.WriteLine($"Food ID: {id}");
+            Console.WriteLine($"Food Ingredients Count: {foodIngredients?.Count ?? 0}");
+            Console.WriteLine("Food Ingredients:");
+            foreach (var ing in foodIngredients)
+            {
+                Console.WriteLine($" - FoodId ID: {ing.FoodId}, IngredientId: {ing.IngredientId}");
+            }
+
+            Console.WriteLine("All Ingredients:");
+            foreach (var ing in allIngredients)
+            {
+                Console.WriteLine($" - Ingredient ID: {ing.Id}, Name: {ing.Name}");
+            }
+
+            // Gán cả hai danh sách vào ViewBag
+            ViewBag.FoodIngredients = foodIngredients; // Nguyên liệu của món ăn
+            ViewBag.AllIngredients = allIngredients;   // Tất cả nguyên liệu
+
             return View(food);
         }
+
+
 
         // Hiển thị form cập nhật sản phẩm
         [HttpGet]
@@ -149,6 +192,21 @@ namespace FoodStore.Areas.Admin.Controllers
             await _foodRepository.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> SaveRecipe(int id, List<FoodIngredient> ingredients)
+        {
+            var success = await _foodService.SaveRecipeAsync(id, ingredients);
+            if (!success)
+            {
+                return StatusCode(500, "An error occurred while saving the recipe.");
+            }
+
+            return RedirectToAction("Display", new { id });
+        }
+
+
 
     }
 }

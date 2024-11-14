@@ -2,9 +2,8 @@
 using FoodStore.Models;
 using Microsoft.EntityFrameworkCore; // Thêm không gian tên này
 using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.Threading.Tasks;
 using FoodStore.Repositories; // Thêm không gian tên này nếu chưa có
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FoodStore.Areas.Admin.Controllers
 {
@@ -39,23 +38,42 @@ namespace FoodStore.Areas.Admin.Controllers
             ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
             return View("Add"); // Trả về view Add.cshtml
         }
-
-        // POST: Admin/Ingredient/Create
         [HttpPost]
-        public async Task<IActionResult> Add(Ingredients ing)
+        public async Task<IActionResult> Add(Ingredients ing, IFormFile Image)
         {
-            _logger.LogInformation("///////////// IN Task<IActionResult> Add(Ingredients ing)");
+            _logger.LogInformation("In Task<IActionResult> Add(Ingredients ing)");
             _logger.LogInformation($"Is valid: {ModelState.IsValid}");
+
+            // Exclude 'Image' from model validation
+            ModelState.Remove("Image");
 
             if (ModelState.IsValid)
             {
+                string imagePath = null;
+
+                if (Image != null && Image.Length > 0)
+                {
+                    // Define the path to save the uploaded file
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                    Directory.CreateDirectory(uploadsFolder); // Ensure the directory exists
+
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + Image.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await Image.CopyToAsync(fileStream);
+                    }
+
+                    imagePath = "images/" + uniqueFileName; // Relative path to save in the database
+                }
+
                 var newIngredient = new Ingredients
                 {
                     Name = ing.Name,
-                    Image = ing.Image,
+                    Image = imagePath,
                     Unit = ing.Unit,
                     Quantity = ing.Quantity,
-                    FoodId = ing.FoodId,
                     IsDeleted = false
                 };
 
@@ -64,44 +82,13 @@ namespace FoodStore.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
-            // If model is invalid, add a custom error message
             ModelState.AddModelError(string.Empty, "Thông tin nhập vào không hợp lệ. Vui lòng kiểm tra lại.");
-            ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
             return View(ing);
         }
 
 
-
-        // [HttpPost]
-        // public async Task<IActionResult> Add(IngredientViewModel model)
-        // {
-        //     if (ModelState.IsValid)
-        //     {
-        //         var newIngredient = new Ingredients
-        //         {
-        //             Name = model.Ingredient.Name,
-        //             Image = model.Ingredient.Image,
-        //             Unit = model.Ingredient.Unit,
-        //             Quantity = model.Ingredient.Quantity,
-        //             FoodId = model.Ingredient.FoodId,
-        //             IsDeleted = false
-        //         };
-
-        //         _context.Ingredients.Add(newIngredient);
-        //         await _context.SaveChangesAsync();
-
-        //         return RedirectToAction("Index"); // Refreshes the index page with new data
-        //     }
-
-        //     // If model is invalid, reload page with errors
-        //     model.Foods = await _context.Foods.ToListAsync();
-        //     return View(model);
-        // }
-
-
-
-        // GET: Admin/Ingredient/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        // GET: Admin/Ingredient/Update/5
+        public async Task<IActionResult> Update(int id)
         {
             var ingredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
             if (ingredient == null || ingredient.IsDeleted)
@@ -110,14 +97,13 @@ namespace FoodStore.Areas.Admin.Controllers
             }
 
             // Lấy danh sách món ăn để điền vào dropdown trong view Edit
-            ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
+            ViewBag.FoodList = new SelectList(_context.Foods.Where(f => !f.IsDeleted), "Id", "Name");
             return View(ingredient);
         }
 
-        // POST: Admin/Ingredient/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Ingredients ingredient)
+        public async Task<IActionResult> Update(int id, Ingredients ingredient, IFormFile Image)
         {
             if (id != ingredient.Id)
             {
@@ -126,28 +112,42 @@ namespace FoodStore.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                var existingIngredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
+                var existingIngredient = await _context.Ingredients.FindAsync(id);
                 if (existingIngredient != null)
                 {
                     existingIngredient.Name = ingredient.Name;
-                    existingIngredient.Image = ingredient.Image;
-                    existingIngredient.FoodId = ingredient.FoodId; // Sửa từ FoodCategoryId thành FoodId
                     existingIngredient.Quantity = ingredient.Quantity;
                     existingIngredient.Unit = ingredient.Unit;
 
+                    // Check if a new image file was uploaded
+                    if (Image != null && Image.Length > 0)
+                    {
+                        // Define the path to save the uploaded file
+                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                        Directory.CreateDirectory(uploadsFolder); // Ensure the directory exists
+
+                        var uniqueFileName = Guid.NewGuid().ToString() + "_" + Image.FileName;
+                        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await Image.CopyToAsync(fileStream);
+                        }
+
+                        existingIngredient.Image = "images/" + uniqueFileName; // Save the relative path in the database
+                    }
+
                     _context.Update(existingIngredient);
-                    await _context.SaveChangesAsync(); // Sử dụng SaveChangesAsync
+                    await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
                 return NotFound();
             }
 
-            // Cập nhật lại danh sách món ăn nếu có lỗi
-            ViewBag.FoodList = _context.Foods.Where(f => !f.IsDeleted).ToList();
+            // Load dropdowns or other data for re-rendering the form on error
+            ViewBag.FoodList = new SelectList(_context.Foods.Where(f => !f.IsDeleted), "Id", "Name");
             return View(ingredient);
         }
-
-        // GET: Admin/Ingredient/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
             var ingredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
@@ -159,18 +159,24 @@ namespace FoodStore.Areas.Admin.Controllers
         }
 
         // POST: Admin/Ingredient/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ingredient = await _context.Ingredients.FindAsync(id); // Sử dụng FindAsync
-            if (ingredient != null)
+            var ingredient = await _context.Ingredients.FindAsync(id); // Use FindAsync to get the ingredient
+            if (ingredient != null && !ingredient.IsDeleted) // Check if ingredient exists and is not already deleted
             {
-                ingredient.IsDeleted = true; // Đánh dấu là đã xóa
-                _context.Update(ingredient);
-                await _context.SaveChangesAsync(); // Sử dụng SaveChangesAsync
+                ingredient.IsDeleted = true; // Mark the ingredient as deleted
+                _context.Update(ingredient); // Update the entry in the context
+                await _context.SaveChangesAsync(); // Save changes to the database
             }
-            return RedirectToAction(nameof(Index));
+            else
+            {
+                _logger.LogWarning($"Ingredient with ID {id} not found or already deleted.");
+            }
+
+            return RedirectToAction("Index");
+            //return RedirectToAction(nameof(Index)); // Redirect to Index
         }
     }
 }
