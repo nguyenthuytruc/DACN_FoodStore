@@ -1,5 +1,5 @@
 ﻿@model FoodStore.Models.Ingredients
-
+<h2>Thêm nguyên liệu</h2>
 <form asp-action="Add" method="post" enctype="multipart/form-data">
     <div asp-validation-summary="All" class="text-danger"></div> <!-- Display all validation errors -->
 
@@ -26,6 +26,19 @@
         <input type="file" asp-for="Image" class="form-control" />
         <span asp-validation-for="Image" class="text-danger"></span>
     </div>
+    <div class="form-group">
+        <label asp-for="ImportDate" class="control-label"></label>
+        <input asp-for="ImportDate" class="form-control" type="date" />
+        <span asp-validation-for="ImportDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ExpiryDate" class="control-label"></label>
+        <input asp-for="ExpiryDate" class="form-control" type="date" />
+        <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+    </div>
 
     <button type="submit" class="btn btn-primary">Thêm nguyên liệu</button>
+    <button type="button" class="btn btn-secondary" onclick="window.history.back()">Trở về</button>
+
 </form>
