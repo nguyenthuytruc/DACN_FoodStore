@@ -75,6 +75,13 @@
                                                 Chuyển sang Đã xong
                                             </button>
                                         </form>
+                                        <form asp-action="UpdateOrderDetailStatus" method="post" class="mt-2">
+                                            <input type="hidden" name="orderId" value="@orderDetail.OrderId" />
+                                            <input type="hidden" name="foodId" value="@orderDetail.FoodId" />
+                                            <button type="submit" name="status" value="0" class="btn btn-secondary w-100">
+                                                Chuyển sang Đang đặt
+                                            </button>
+                                        </form>
                                     }
                                     else if (orderDetail.Status == 2)
                                     {
@@ -83,6 +90,7 @@
                                         </button>
                                     }
                                 </td>
+
                             </tr>
                         }
                     </tbody>
