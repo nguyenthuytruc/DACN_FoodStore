@@ -94,7 +94,9 @@ app.UseEndpoints(endpoints =>
     endpoints.MapControllerRoute(
         name: "Customer",
         pattern: "{area=Customer}/{controller=Order}/{id?}");
-
+    endpoints.MapControllerRoute(
+        name: "Cashier",
+        pattern: "{area=Cashier}/{controller=Home}/{action=Index}/{id?}");
 });
 
 app.Run();
