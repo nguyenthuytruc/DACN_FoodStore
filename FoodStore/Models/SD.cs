@@ -6,6 +6,7 @@
         public const string Role_Employee = "Employee";
         public const string Role_Customer = "Customer";
         public const string Role_Kitchen = "Kitchen";
+        public const string Role_Cashier = "Cashier";
     }
 }
 

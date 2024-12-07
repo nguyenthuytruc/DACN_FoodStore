@@ -99,15 +99,21 @@ namespace FoodStore.Areas.Kitchen.Controllers
                         return NotFound("Order detail not found");
                     }
 
-                    if (ShouldCheckAndDeductIngredients(orderDetail.Status, status))
+                    // Nếu chuyển từ trạng thái 1 (hoàn thành) về 0 (đang đặt), hoàn lại nguyên liệu
+                    if (orderDetail.Status == 1 && status == 0)
+                    {
+                        Console.WriteLine("Reverting status from 1 to 0. Restoring ingredients to inventory.");
+                        await RestoreIngredientsToInventoryAsync(foodId, orderDetail.Quantity);
+                        UpdateStatus(orderDetail, status);
+                    }
+                    else if (ShouldCheckAndDeductIngredients(orderDetail.Status, status))
                     {
                         var hasEnoughIngredients = await CheckAndUpdateIngredientsAsync(foodId, orderDetail.Quantity);
 
-                        // Nếu không đủ nguyên liệu, chuyển trạng thái thành -1
                         if (!hasEnoughIngredients)
                         {
                             Console.WriteLine("Not enough ingredients. Updating status to -1.");
-                            UpdateStatus(orderDetail, -1);
+                            UpdateStatus(orderDetail, -1); // Thiếu nguyên liệu
                         }
                         else
                         {
@@ -135,6 +141,26 @@ namespace FoodStore.Areas.Kitchen.Controllers
 
             return RedirectToAction("Index");
         }
+        //HOÀN NGUYÊN LIỆU
+        private async Task RestoreIngredientsToInventoryAsync(int foodId, int quantity)
+        {
+            var ingredientDetails = await _context.FoodIngredient
+                .Where(fi => fi.FoodId == foodId)
+                .ToListAsync();
+
+            foreach (var detail in ingredientDetails)
+            {
+                var ingredient = await _context.Ingredients.FindAsync(detail.IngredientId);
+                if (ingredient != null)
+                {
+                    ingredient.Quantity += detail.QuantityRequired * quantity;
+                    Console.WriteLine($"Restored {detail.QuantityRequired * quantity} of {ingredient.Name} to inventory.");
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
 
         // Hàm lấy chi tiết đơn hàng
         private async Task<OrderDetail> GetOrderDetailAsync(int orderId, int foodId)
