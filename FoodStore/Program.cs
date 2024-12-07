@@ -40,6 +40,8 @@ builder.Services.AddScoped<IPaymentRepository, EFPaymentRepository>();
 builder.Services.AddScoped<ITableRepository, EFTableRepository>();
 builder.Services.AddScoped<IIngredientRepository, EFIngredientRepository>();
 builder.Services.AddScoped<IFoodIngredientRepository, EFFoodIngredientRepository>();
+builder.Services.AddScoped<IQRCodeRepository, EFQRCodeRepository>();
+builder.Services.AddTransient<ISupabaseService, SupabaseService>();
 
 builder.Services.AddSession(options =>
 {

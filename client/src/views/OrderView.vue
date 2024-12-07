@@ -3,9 +3,11 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axiosInstance from '../config/axios.js';
 import { useToast } from "vue-toastification";
+import BestSellingFoods from "./BestSellingFoods.vue";
 const route = useRoute();
-const router = useRouter();
 const idTable = ref(route.params['idTable']);
+const key = ref(route.params['key']);
+
 const listFood = ref([]);
 const listCategory = ref([]);
 const selectedCategory = ref(null);
@@ -15,12 +17,32 @@ const toast = useToast();
 // Hàm lấy danh sách món ăn và danh mục từ API
 onMounted(async () => {
   try {
-    const response = await axiosInstance.get('/food');
-    const categoryRes = await axiosInstance.get('/FoodCategory');
-    listFood.value = response.data.$values;
-    listCategory.value = categoryRes.data.$values;
+	const checkKey = await axiosInstance.get(`/qrcode/check/${key.value}`);
+	console.log(checkKey);
+	if (checkKey.data.accept) {
+		sessionStorage.setItem('keyOrder', key.value)
+		const response = await axiosInstance.get('/food');
+    	const categoryRes = await axiosInstance.get('/FoodCategory');
+    	listFood.value = response.data.$values;
+    	listCategory.value = categoryRes.data.$values;
+	}
   } catch (error) {
     console.error("Error fetching food data:", error);
+	window.location = "/access-denied"
+	toast.error("Không thể truy cập vào bàn! ", {
+			position: "bottom-left",
+			timeout: 1500,
+			closeOnClick: true,
+			pauseOnFocusLoss: true,
+			pauseOnHover: true,
+			draggable: true,
+			draggablePercent: 0.42,
+			showCloseButtonOnHover: false,
+			hideProgressBar: true,
+			closeButton: "button",
+			icon: true,
+			rtl: false
+		});
   }
 });
 
@@ -117,6 +139,8 @@ function formatPrice(price) {
 				</router-link>
 			</div>
 			<div class="order--main">
+				<BestSellingFoods />
+				<h5>Loại món ăn</h5>
 				<div class="list--category">
 					<span
 						@click="selectCategory(null)"

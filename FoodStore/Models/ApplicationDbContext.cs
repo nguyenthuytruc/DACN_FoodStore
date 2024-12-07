@@ -19,6 +19,7 @@ namespace FoodStore.Models
 
         public DbSet<Ingredients> Ingredients { get; set; }
         public DbSet<FoodIngredient> FoodIngredient { get; set; }
+        public DbSet<QRCode> QRCodes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

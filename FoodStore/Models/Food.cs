@@ -14,6 +14,7 @@ namespace FoodStore.Models
         public decimal Price { get; set; }
         public int Status { get; set; } = 0;
         public int FoodCategoryId { get; set; }
+        public int SoldCount { get; set; } //Moi Thêm số lượng đã bán
         public FoodCategory FoodCategorys { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
     }

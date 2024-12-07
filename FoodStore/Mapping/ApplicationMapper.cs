@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FoodStore.DTO;
 using FoodStore.Models;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace FoodStore.Mapping
@@ -14,6 +15,7 @@ namespace FoodStore.Mapping
             CreateMap<Order, OrderDTO>().ReverseMap();
             CreateMap<OrderDetail, OrderDetailDTO>().ReverseMap();
             CreateMap<Table, TableDTO>().ReverseMap();
+            CreateMap<QRCode, QRCodeDTO>().ReverseMap();
 
         }
 

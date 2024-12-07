@@ -2,42 +2,123 @@
 	
 	<div class="cart-container">
 		<div class="cart-header">
-			<router-link :to="`/order/${idTable}`">
+			<router-link :to="`/order/${idTable}/${key}`">
 				<button class="btn-back">
 					<i class="fa fa-arrow-circle-left" aria-hidden="true"></i>
 				</button>
 			</router-link>
 			<h4>Giỏ hàng bàn: {{ idTable }}</h4>
 		</div>
-		<div class="cart-content">
-			<h5>Món ăn đã thêm</h5>
-			<ul v-if="cartItems.length > 0" class="cart-list">
-				<li v-for="item in cartItems" :key="item.id" class="cart-item">
-					<div class="item-info">
-						<div class="item-name">{{ item.name }}</div>
-						<div class="item-price">{{ formatPrice( item.price * item.quantity ) }}</div>
-					</div>
-					<div class="quantity-controls">
-						<button @click="decreaseQuantity(item)" :disabled="item.quantity === 1" class="btn-quantity">-</button>
-						<span>{{ item.quantity }}</span>
-						<button @click="increaseQuantity(item)" class="btn-quantity">+</button>
-					</div>
-					<button class="btn-delete" @click="removeItem(item.id)"><i class="fa-solid fa-trash"></i></button>
-				</li>
-			</ul>
-			<p v-else>Giỏ hàng trống</p>
-			<div class="total-price">
-				<span>Tổng Cộng:</span> <span class="mx-2">{{ formatPrice(  cartItems.reduce((total, item) => total + item.price * item.quantity, 0) ) }}</span> 
-			</div>
-			<div class="cart-buttons">
-			
-				<button class="btn-confirm " @click="submitOrder()">Thanh Toán</button>
-			</div>
-		</div>
+		<div class="tabs">
+      <button :class="{ active: activeTab === 'cart' }" @click="activeTab = 'cart'">Giỏ hàng</button>
+      <button :class="{ active: activeTab === 'history' }" @click="loadHistory()" >Lịch sử đặt món</button>
+    </div>
+		<!-- Cart Content -->
+    <div v-if="activeTab === 'cart'" class="cart-content">
+      <h5>Món ăn đã thêm</h5>
+      <ul v-if="cartItems.length > 0" class="cart-list">
+        <li v-for="item in cartItems" :key="item.id" class="cart-item">
+          <div class="item-info">
+            <div class="item-name">{{ item.name }}</div>
+            <div class="item-price">{{ formatPrice(item.price * item.quantity) }}</div>
+          </div>
+          <div class="quantity-controls">
+            <button @click="decreaseQuantity(item)" :disabled="item.quantity === 1" class="btn-quantity">-</button>
+            <span>{{ item.quantity }}</span>
+            <button @click="increaseQuantity(item)" class="btn-quantity">+</button>
+          </div>
+          <button class="btn-delete" @click="removeItem(item.id)">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </li>
+      </ul>
+      <p v-else>Giỏ hàng trống</p>
+      <div class="total-price">
+        <span>Tổng Cộng:</span>
+        <span class="mx-2">
+          {{ formatPrice(cartItems.reduce((total, item) => total + item.price * item.quantity, 0)) }}
+        </span>
+      </div>
+      <div class="cart-buttons">
+        <button class="btn-confirm" @click="submitOrder()">Đặt món</button>
+      </div>
+    </div>
+
+    <!-- Order History Content -->
+    <div v-if="activeTab === 'history'" class="history-content">
+      <h5>Lịch sử đặt món</h5>
+	  	<ul v-if="orderHistory.length > 0" class="history-list">
+  <li v-for="item in orderHistory" :key="item.id" class="history-item">
+    <div class="item-details">
+      <span class="item-name">{{ item.name }}</span>
+      <span class="item-price">{{ formatPrice(item.price) }}</span>
+    </div>
+    <div class="item-quantity">
+      Số lượng: {{ item.quantity }}
+    </div>
+  </li>
+    <div class="total-price">
+        <span>Tổng Cộng:</span>
+        <span class="mx-2">
+          {{ formatPrice(cartItems.reduce((total, item) => total + item.price * item.quantity, 0)) }}
+        </span>
+      </div>
+</ul>
+<p v-else class="no-history">Bạn chưa có đơn hàng nào.</p>
+
+    </div>
 	</div>
 </template>
 
 <style scoped>
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.item-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.item-name {
+  color: #333;
+}
+
+.item-price {
+  color: #888;
+}
+
+.item-quantity {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #666;
+}
+
+.no-history {
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  margin-top: 20px;
+}
+
 .cart-container {
 	max-width: 500px;
 	margin: auto;
@@ -183,6 +264,42 @@ h5 {
 	background-color: #bbb;
 }
 
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #f1f1f1;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0 5px;
+}
+
+.tabs button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.cart-content,
+.history-content {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.history-item {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
 </style>
 <script setup>
 import { ref, onMounted } from "vue";
@@ -193,8 +310,11 @@ import { useToast } from "vue-toastification";
 const route = useRoute();
 const idTable = ref(route.params.idTable); // Lấy idTable từ route params
 const cartItems = ref([]); // Danh sách món ăn trong giỏ hàng
+
 const toast = useToast();
 const orderHistory = ref([]);
+const activeTab = ref("cart");
+const key = sessionStorage.getItem('key');
 
 // Hàm lấy dữ liệu món ăn từ API theo ID
 async function getFoodById(id) {
@@ -224,6 +344,14 @@ async function getCartItems() {
 	);
 
 	cartItems.value = items;
+}
+
+function loadHistory() {
+	const history = JSON.parse(sessionStorage.getItem("history"));
+	console.log(history);
+	orderHistory.value = history;
+
+	activeTab.value = 'history';
 }
 
 // Hàm tăng số lượng
@@ -279,9 +407,10 @@ async function submitOrder() {
 
 			// Thêm chi tiết món ăn vào danh sách
 			return {
-				foodId: parseInt(id),
-				quantity: quantity,
+				FoodId: parseInt(id),
+				name: food.name,
 				price: food.price,
+				quantity,
 			};
 		})
 	);
@@ -292,35 +421,13 @@ async function submitOrder() {
 	try {
 		const response = await axiosInstance.post("/order", orderDTO);
 		if (response.status === 200) {
+			orderHistory.value = cartItems.value;
+
 			console.log("Đơn hàng đã được gửi thành công!");
-			// Sau khi gửi thành công, xóa giỏ hàng khỏi sessionStorage
 
-			// Lấy thông tin order từ phản hồi server
-			const orderInfo = response.data; // Giả sử server trả về thông tin đơn hàng sau khi tạo
+			sessionStorage.setItem("history", JSON.stringify(orderDTO.listOrderDetail));
 
-			// Lấy lịch sử order từ sessionStorage hoặc tạo mảng mới
-			const orderHistory =
-				JSON.parse(sessionStorage.getItem("orderHistory")) || [];
-
-			// Thêm thông tin order vào lịch sử
-			orderHistory.push({
-				orderId: orderInfo.id, // Giả sử id là mã đơn hàng từ server
-				tableId: orderDTO.tableId,
-				totalPrice: orderDTO.totalPrice,
-				date: new Date().toISOString(), // Thời gian hiện tại khi đặt
-				items: items, // Danh sách món ăn đã đặt
-			});
-
-			// Lưu lại lịch sử order vào sessionStorage
-			sessionStorage.setItem(
-				"orderHistory",
-				JSON.stringify(orderHistory)
-			);
-
-			// Sau khi gửi thành công, xóa giỏ hàng khỏi sessionStorage
 			sessionStorage.removeItem("cart");
-
-			console.log(orderHistory);
 
 			// Cập nhật giao diện hoặc điều hướng nếu cần
 			this.toast.success("Đặt món thành công !", {
