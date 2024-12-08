@@ -50,12 +50,12 @@
 
                 <div class="d-flex align-items-center gap-2">
                     @if (ViewBag.Invoice.Status == false) {
-                    
-                        <form method="post" asp-area="admin" asp-action="Complete" asp-route-id="@ViewBag.Invoice.Id">
+
+                        <form method="post" asp-area="cashier" asp-action="Complete" asp-route-id="@ViewBag.Invoice.Id">
                             <button type="submit" class="btn btn-primary">Xác nhận thanh toán</button>
                         </form>
                     }
-                    <a href="/admin/Invoice/" class="btn btn-secondary">Trở về</a>
+                    <a href="/cashier/Invoice/" class="btn btn-secondary">Trở về</a>
                 </div>
 
             </div>
