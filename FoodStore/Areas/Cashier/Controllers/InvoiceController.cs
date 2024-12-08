@@ -87,7 +87,7 @@ namespace FoodStore.Areas.Cashier.Controllers
                 if (result != null)
                 {
 
-                    return Redirect("/admin/Invoice");
+                    return Redirect("/cashier/Invoice");
                 }
                 else
                 {
@@ -129,7 +129,7 @@ namespace FoodStore.Areas.Cashier.Controllers
         }
 
         [HttpPost]
-        [Route("admin/invoice/complete/{id:int}")]
+        [Route("cashier/invoice/complete/{id:int}")]
 
         public async Task<IActionResult> Complete(int id)
         {
