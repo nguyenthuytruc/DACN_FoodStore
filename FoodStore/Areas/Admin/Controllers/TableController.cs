@@ -106,21 +106,21 @@ namespace FoodStore.Areas.Admin.Controllers
             string url = $"http://localhost:5173/order/{idTable}/{key}";
             string fileName = $"{idTable}.png";
 
-            // Generate QR code image
+           
             GeneratedBarcode barcode = QRCodeWriter.CreateQrCode(url, 250);
             barcode.SetMargins(10);
 
-            // Save the image locally temporarily
+            
             string tempPath = Path.GetTempFileName();
             barcode.SaveAsImage(tempPath);
 
-            // Read the file as byte array
+       
             byte[] fileBytes = System.IO.File.ReadAllBytes(tempPath);
 
             var storage = _supabase.GetClient().Storage;
-            var bucket = storage.From("QRTable"); // Replace with your bucket name
+            var bucket = storage.From("QRTable"); 
             string supabasePath = $"{fileName}";
-            // Upload file to Supabase bucket
+         
             try
             {
                 var deleteResponse = await storage.From("QRTable").Remove(supabasePath);
@@ -133,17 +133,17 @@ namespace FoodStore.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                // Handle upload error
+             
                 throw new Exception($"Error uploading file to Supabase: {ex.Message}");
             }
             await _qrRepository.UpdateQrStatusBefore(idTable);
 
-            // Save QR code data to the database
+           
             QRCode qrCode = new QRCode
             {
                 Url = url,
                 Status = false,
-                ImagePath = $"qr-codes/{fileName}", // Supabase storage path
+                ImagePath = $"qr-codes/{fileName}", 
                 Key = key,
                 IdTable = idTable,
             };
@@ -158,21 +158,21 @@ namespace FoodStore.Areas.Admin.Controllers
             string url = $"http://localhost:5173/order/{idTable}/{key}";
             string fileName = $"{idTable}.png";
 
-            // Generate QR code image
+           
             GeneratedBarcode barcode = QRCodeWriter.CreateQrCode(url, 250);
             barcode.SetMargins(10);
 
-            // Save the image locally temporarily
+            
             string tempPath = Path.GetTempFileName();
             barcode.SaveAsImage(tempPath);
 
-            // Read the file as byte array
+          
             byte[] fileBytes = System.IO.File.ReadAllBytes(tempPath);
 
             var storage = _supabase.GetClient().Storage;
             var bucket = storage.From("QRTable"); // Replace with your bucket name
             string supabasePath = $"{fileName}";
-            // Upload file to Supabase bucket
+           
             try
             {
                 var response = await storage
@@ -181,17 +181,17 @@ namespace FoodStore.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                // Handle upload error
+                
                 throw new Exception($"Error uploading file to Supabase: {ex.Message}");
             }
 
 
-            // Save QR code data to the database
+            
             QRCode qrCode = new QRCode
             {
                 Url = url,
                 Status = false,
-                ImagePath = $"qr-codes/{fileName}", // Supabase storage path
+                ImagePath = $"qr-codes/{fileName}", 
                 Key = key,
                 IdTable = idTable,
             };

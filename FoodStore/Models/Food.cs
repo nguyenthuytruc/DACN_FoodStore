@@ -15,6 +15,7 @@ namespace FoodStore.Models
         public int Status { get; set; } = 0;
         public int FoodCategoryId { get; set; }
         public int SoldCount { get; set; } //Moi Thêm số lượng đã bán
+        public int TypeFood { get; set; } // 0 luôn tính tiền, 1 free trong mọi buffet, 2 free buffet 2 nhưng không buffet 1
         public FoodCategory FoodCategorys { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
     }
