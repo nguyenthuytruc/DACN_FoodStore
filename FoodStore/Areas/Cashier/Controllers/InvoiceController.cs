@@ -87,7 +87,7 @@ namespace FoodStore.Areas.Cashier.Controllers
                 if (result != null)
                 {
 
-                    return Redirect("/admin/Invoice");
+                    return Redirect("/cashier/Invoice");
                 }
                 else
                 {
