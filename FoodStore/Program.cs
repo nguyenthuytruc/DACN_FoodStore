@@ -41,7 +41,10 @@ builder.Services.AddScoped<ITableRepository, EFTableRepository>();
 builder.Services.AddScoped<IIngredientRepository, EFIngredientRepository>();
 builder.Services.AddScoped<IFoodIngredientRepository, EFFoodIngredientRepository>();
 builder.Services.AddScoped<IQRCodeRepository, EFQRCodeRepository>();
+builder.Services.AddScoped<IBuffetRepository, EFBuffetRepository>();
+builder.Services.AddScoped<IBuffetDetailRepository, EFBuffetDetailRepository>();
 builder.Services.AddTransient<ISupabaseService, SupabaseService>();
+
 
 builder.Services.AddSession(options =>
 {

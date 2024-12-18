@@ -18,7 +18,7 @@ namespace FoodStore.Areas.Admin.Controllers
         private readonly ITableRepository _tableRepository;
         private readonly IQRCodeRepository _qrcodeRepository;
         private readonly ApplicationDbContext _context;
-        public InvoiceController(IOrderRepository orderRepository, IInvoiceRepository invoiceRepository, ITableRepository tableRepository, IQRCodeRepository qrcodeRepository,ApplicationDbContext context = null)
+        public InvoiceController(IOrderRepository orderRepository, IInvoiceRepository invoiceRepository, ITableRepository tableRepository, IQRCodeRepository qrcodeRepository,ApplicationDbContext context )
         {
             _orderRepository = orderRepository;
             _invoiceRepository = invoiceRepository;
