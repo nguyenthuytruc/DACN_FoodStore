@@ -16,6 +16,8 @@ namespace FoodStore.Mapping
             CreateMap<OrderDetail, OrderDetailDTO>().ReverseMap();
             CreateMap<Table, TableDTO>().ReverseMap();
             CreateMap<QRCode, QRCodeDTO>().ReverseMap();
+            CreateMap<Buffet, BuffetDTO>().ReverseMap();
+            CreateMap<BuffetDetail, BuffetDetailDTO>().ReverseMap();
 
         }
 
