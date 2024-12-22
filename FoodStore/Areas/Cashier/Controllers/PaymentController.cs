@@ -23,25 +23,7 @@ namespace FoodStore.Areas.Cashier.Controllers
             var htttoan = await _htttoanRepository.GetAllAsync();
             return View(htttoan);
         }
-        public async Task<IActionResult> Add()
-        {
-            var htttoan = await _htttoanRepository.GetAllAsync();
-            return View();
-        }
-        // Xử lý thêm sản phẩm mới
-
-        [HttpPost]
-        public async Task<IActionResult> Add(Payment httt)
-        {
-            if (!ModelState.IsValid)
-            {
-                // Thực hiện thêm bàn mới vào cơ sở dữ liệu
-                await _htttoanRepository.AddAsync(httt);
-                return RedirectToAction("Index");
-            }
-            // Nếu model không hợp lệ, hiển thị lại form thêm bàn với thông báo lỗi
-            return View(httt);
-        }
+        
         public async Task<IActionResult> Display(int id)
         {
             var htttoan = await _htttoanRepository.GetByIdAsync(id);
@@ -51,6 +33,7 @@ namespace FoodStore.Areas.Cashier.Controllers
             }
             return View(htttoan);
         }
+
         [HttpGet]
         public async Task<IActionResult> Update(int id)
         {
@@ -100,6 +83,5 @@ namespace FoodStore.Areas.Cashier.Controllers
             // Redirect về action Index
             return RedirectToAction(nameof(Index));
         }
-
     }
 }
