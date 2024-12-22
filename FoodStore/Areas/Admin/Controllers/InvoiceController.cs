@@ -16,11 +16,15 @@ namespace FoodStore.Areas.Admin.Controllers
         private readonly IOrderRepository _orderRepository;
         private readonly IInvoiceRepository _invoiceRepository;
         private readonly ITableRepository _tableRepository;
-        public InvoiceController(IOrderRepository orderRepository, IInvoiceRepository invoiceRepository, ITableRepository tableRepository)
+        private readonly IQRCodeRepository _qrcodeRepository;
+        private readonly ApplicationDbContext _context;
+        public InvoiceController(IOrderRepository orderRepository, IInvoiceRepository invoiceRepository, ITableRepository tableRepository, IQRCodeRepository qrcodeRepository,ApplicationDbContext context )
         {
             _orderRepository = orderRepository;
             _invoiceRepository = invoiceRepository;
             _tableRepository = tableRepository;
+            _qrcodeRepository = qrcodeRepository;
+            _context = context;
         }
 
         [HttpGet]
@@ -69,31 +73,35 @@ namespace FoodStore.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> CompleteInvoice(int OrderId, long changeValue, int paymentId)
         {
-            
-                Invoice invoice = new Invoice();
-                var order = await _orderRepository.GetOrderAcceptedById(OrderId);
-                if (changeValue > 0)
-                {
-                    invoice.Price = order.TotalPrice + changeValue;
-                }
-                invoice.PaymentId = paymentId;
+
+            Invoice invoice = new Invoice();
+            var order = await _orderRepository.GetOrderAcceptedById(OrderId);
+            var table = await _tableRepository.GetByIdAsync(order.TableId);
+
+            if (changeValue > 0)
+            {
                 invoice.Price = order.TotalPrice + changeValue;
-                invoice.OrderId = order.Id;
-                invoice.CreatedAt = DateTime.UtcNow;
-                invoice.FinishedAt = DateTime.UtcNow;
+            }
+            invoice.PaymentId = paymentId;
+            invoice.Price = order.TotalPrice + changeValue;
+            invoice.OrderId = order.Id;
+            invoice.CreatedAt = DateTime.UtcNow;
+            invoice.FinishedAt = DateTime.UtcNow;
 
-                var result = await _invoiceRepository.AddAsync(invoice);
+            var result = await _invoiceRepository.AddAsync(invoice);
 
-                if (result != null)
-                {
+            if (result != null)
+            {
+                table.Status = 0;
+                _context.Tables.Update(table);
+                await _context.SaveChangesAsync();
+                return Redirect("/admin/Invoice");
+            }
+            else
+            {
+                return NotFound();
+            }
 
-                    return Redirect("/admin/Invoice");
-                }
-                else
-                {
-                    return NotFound();
-                }
-           
         }
 
         [HttpGet]
@@ -134,16 +142,20 @@ namespace FoodStore.Areas.Admin.Controllers
         public async Task<IActionResult> Complete(int id)
         {
             var invoice = await _invoiceRepository.GetByIdAsync(id);
-           
+
             var table = await _tableRepository.GetByIdAsync(invoice.Order.TableId);
+            var qrcode = await _qrcodeRepository.GetQRCodeByIdTableAsync(invoice.Order.TableId);
             if (invoice == null)
             {
-                return NotFound(); 
+                return NotFound();
             }
             table.Status = 0;
+            qrcode.Status = true;
             invoice.Status = true;
-            await _invoiceRepository.UpdateAsync(invoice,table);
-            return RedirectToAction("Index"); 
+            await _tableRepository.UpdateAsync(table);
+            await _qrcodeRepository.UpdateQRCodeAsync(qrcode);
+            await _invoiceRepository.UpdateAsync(invoice, table);
+            return RedirectToAction("Index");
         }
 
         //mới thêm Status và Charge (update database)

@@ -97,6 +97,61 @@ namespace FoodStore.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("FoodStore.Models.Buffet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Buffets");
+                });
+
+            modelBuilder.Entity("FoodStore.Models.BuffetDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BuffetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FoodId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuffetId");
+
+                    b.HasIndex("FoodId");
+
+                    b.ToTable("BuffetDetails");
+                });
+
             modelBuilder.Entity("FoodStore.Models.Food", b =>
                 {
                     b.Property<int>("Id")
@@ -123,6 +178,9 @@ namespace FoodStore.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("SoldCount")
+                        .HasColumnType("int");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -134,7 +192,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("FoodCategoryId");
 
-                    b.ToTable("Foods", (string)null);
+                    b.ToTable("Foods");
                 });
 
             modelBuilder.Entity("FoodStore.Models.FoodCategory", b =>
@@ -155,68 +213,69 @@ namespace FoodStore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FoodCategories", (string)null);
+                    b.ToTable("FoodCategories");
                 });
 
-            modelBuilder.Entity("FoodStore.Models.Ingredient", b =>
+            modelBuilder.Entity("FoodStore.Models.FoodIngredient", b =>
                 {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("ImagePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Nums")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("Ingredients", (string)null);
-                });
-
-            modelBuilder.Entity("FoodStore.Models.IngredientDetail", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
-
                     b.Property<int>("FoodId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ID_Ingredient")
+                    b.Property<int>("IngredientId")
                         .HasColumnType("int");
 
-                    b.Property<int>("IngredientID")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("Nums")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("QuantityRequired")
                         .HasColumnType("int");
 
-                    b.HasKey("ID");
+                    b.HasKey("FoodId", "IngredientId");
 
-                    b.HasIndex("FoodId");
+                    b.HasIndex("IngredientId");
 
-                    b.HasIndex("IngredientID");
+                    b.ToTable("FoodIngredient");
+                });
 
-                    b.ToTable("IngredientDetails", (string)null);
+            modelBuilder.Entity("FoodStore.Models.Ingredients", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ImportDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Ingredients");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Invoice", b =>
@@ -257,7 +316,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("Invoices", (string)null);
+                    b.ToTable("Invoices");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Order", b =>
@@ -287,7 +346,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("TableId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("FoodStore.Models.OrderDetail", b =>
@@ -308,7 +367,7 @@ namespace FoodStore.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderDetails", (string)null);
+                    b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Payment", b =>
@@ -325,7 +384,41 @@ namespace FoodStore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("FoodStore.Models.QRCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdTable")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImagePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("QRCodes");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Table", b =>
@@ -341,7 +434,7 @@ namespace FoodStore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tables", (string)null);
+                    b.ToTable("Tables");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -477,6 +570,25 @@ namespace FoodStore.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("FoodStore.Models.BuffetDetail", b =>
+                {
+                    b.HasOne("FoodStore.Models.Buffet", "Buffet")
+                        .WithMany("BuffetDetails")
+                        .HasForeignKey("BuffetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FoodStore.Models.Food", "Food")
+                        .WithMany("BuffetDetails")
+                        .HasForeignKey("FoodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Buffet");
+
+                    b.Navigation("Food");
+                });
+
             modelBuilder.Entity("FoodStore.Models.Food", b =>
                 {
                     b.HasOne("FoodStore.Models.FoodCategory", "FoodCategorys")
@@ -488,7 +600,7 @@ namespace FoodStore.Migrations
                     b.Navigation("FoodCategorys");
                 });
 
-            modelBuilder.Entity("FoodStore.Models.IngredientDetail", b =>
+            modelBuilder.Entity("FoodStore.Models.FoodIngredient", b =>
                 {
                     b.HasOne("FoodStore.Models.Food", "Food")
                         .WithMany()
@@ -496,15 +608,15 @@ namespace FoodStore.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FoodStore.Models.Ingredient", "Ingredient")
+                    b.HasOne("FoodStore.Models.Ingredients", "Ingredients")
                         .WithMany()
-                        .HasForeignKey("IngredientID")
+                        .HasForeignKey("IngredientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Food");
 
-                    b.Navigation("Ingredient");
+                    b.Navigation("Ingredients");
                 });
 
             modelBuilder.Entity("FoodStore.Models.Invoice", b =>
@@ -607,8 +719,15 @@ namespace FoodStore.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FoodStore.Models.Buffet", b =>
+                {
+                    b.Navigation("BuffetDetails");
+                });
+
             modelBuilder.Entity("FoodStore.Models.Food", b =>
                 {
+                    b.Navigation("BuffetDetails");
+
                     b.Navigation("OrderDetails");
                 });
 

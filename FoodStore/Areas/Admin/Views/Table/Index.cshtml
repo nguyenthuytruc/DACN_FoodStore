@@ -1,77 +1,62 @@
-﻿@model IEnumerable<FoodStore.Models.Table>
-@{
-    ViewData["Title"] = "Index";
-    Layout = "~/Areas/Admin/Views/Shared/_LayoutAdmin.cshtml";
-}
-@{
-    ViewData["Title"] = "Table";
-}
-<div class="container py-4 px-4 h-100">
-    <div class="table-wrapper w-100 ">
-        <div class="d-flex justify-content-between ">
-            <p> </p>
-            <p class="fw-bold fs-3">Danh sách bàn</p>
-            <div class="table-action d-flex align-items-center gap-2">
-                <a class="btn btn-info" href="/Admin/Table/Add">Thêm bàn</a>
+﻿<div class="container py-4 px-4 h-100">
+    <div class="table-wrapper w-100 bg-light p-4 rounded shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="fw-bold fs-3 text-primary">Danh sách bàn</h1>
+            <div class="table-action">
+                <a class="btn btn-info text-white px-4" href="/Admin/Table/Add">
+                    <i class="bi bi-plus-circle"></i> Thêm bàn
+                </a>
             </div>
-
         </div>
         <div class="table-container">
-            <div class="row">
+            <div class="row gx-4 gy-4">
                 @foreach (var table in Model)
                 {
-                    <div class="col-lg-4 mt-4">
-                        <div class="item-table">
-                            <div class="item-table--img">
-                                @{
-                                @using System.IO;
-
-                                    var filename = "/images/QRTable/" + @table.Id + ".png";
-                                    <img src=@filename width="50%">
-                                }
-                            </div>
-                            <div class="item-table--info">
-                                
-                                    <p class="mb-0">
-                                        Mã bàn : @table.Id
-                                    </p>
-                                    <p class="mb-0">
-                                        Trạng thái:
-                                        @{
-                                            if (@table.Status == 1)
-                                            {
-                                                <span class="fw-bold text-warning">Bận</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="fw-bold text-success">Còn trống</span>
-                                            }
+                    <div class="col-lg-4">
+                        <div class="item-table shadow-sm">
+                            <div class="item-table--info bg-white p-3 rounded">
+                                <p class="mb-2 fw-bold">Mã bàn: <span>@table.Id</span></p>
+                                <p class="mb-2">
+                                    Trạng thái:
+                                    @{
+                                        if (@table.Status == 1)
+                                        {
+                                            <span class="badge bg-warning text-dark">Bận</span>
                                         }
-                                    </p>
-                                
-                                
+                                        else
+                                        {
+                                            <span class="badge bg-success">Còn trống</span>
+                                        }
+                                    }
+                                </p>
                             </div>
-                            <div class="item-table--actions d-flex align-items-center justify-content-center mt-2">
-                                <buton type="buton" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-@table.Id">Xóa</buton>
-                                <a href="/customer/order/@table.Id" class="btn btn-primary ms-2">Order</a>
+                            <div class="item-table--actions d-flex align-items-center justify-content-around mt-3">
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-@table.Id">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                                <a href="/customer/order/@table.Id" class="btn btn-outline-primary">
+                                    <i class="bi bi-cart"></i> Order
+                                </a>
+                                <a href="/admin/table/Display/@table.Id" class="btn btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> Chi tiết
+                                </a>
                             </div>
-
                         </div>
                     </div>
                     <div class="modal fade" id="modal-@table.Id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="exampleModalLabel">Thông báo</h5>
+                                    <h5 class="modal-title text-danger" id="exampleModalLabel">Xác nhận xóa</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    Bạn có chắc chắn muốn xóa bàn này không ?
+                                    Bạn có chắc chắn muốn xóa bàn này không?
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                                     <form action="/Admin/Table/DeleteConfirmed" method="post">
-                                        <input value="@table.Id" name="id" class="d-none">
+                                        <input type="hidden" name="id" value="@table.Id">
                                         <button type="submit" class="btn btn-danger">Đồng ý</button>
                                     </form>
                                 </div>
@@ -82,45 +67,42 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <style>
     .item-table {
-        height: 300px;
-        border: 1px solid black;
+        height: 100%;
         border-radius: 8px;
-        display: flex;
-        flex-direction: column;
-        transition: 0.2s ease-in-out;
+        border: 1px solid black;
+        background: #f9f9f9;
+        transition: transform 0.2s, box-shadow 0.2s;
+        padding-bottom : 20px;
     }
 
-        .item-table:hover .item-table--img i {
-            transform: scale(110%);
-        }
-
-    .item-table--img {
-        height: 60%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: 0.2s ease-in-out;
+    .item-table:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
-
-        .item-table--img i {
-            font-size: 48px;
-            color: var(--blue-gradient);
-            transition: 0.2s ease-in-out;
-        }
 
     .item-table--info {
-        border-top: 1px solid var(--blue-gradient);
-        padding-top: 12px;
         text-align: center;
     }
 
+    .item-table--actions button,
+    .item-table--actions a {
+        width: 100px;
+    }
+
     .table-container .row {
-        height: 550px;
-        overflow-y: scroll;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .btn {
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    }
+
+    .btn:hover {
+        color: white;
     }
 </style>

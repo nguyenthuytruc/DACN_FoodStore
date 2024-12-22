@@ -101,8 +101,7 @@ namespace FoodStore.Areas.Customer.Controllers
         [HttpGet]
         public IActionResult RemoveFromCart(int idTable, int foodId)
         {
-            var cart =
-            HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart");
+            var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart");
             if (cart is not null)
             {
                 cart.RemoveItem(foodId);

@@ -80,5 +80,28 @@ public class EFOrderDetailRepository : IOrderDetailRepository
             .Where(od => !od.Order.StatusPay && od.Status == 2)
             .CountAsync();
     }
+    //public async Task UpdateSoldCountAsync(int foodId)
+    //{
+    //    var soldCount = await _context.OrderDetails
+    //        .Where(od => od.FoodId == foodId)
+    //        .SumAsync(od => od.Quantity);
+
+    //    var food = await _context.Foods.FindAsync(foodId);
+    //    if (food != null)
+    //    {
+    //        food.SoldCount = soldCount;
+    //        await _context.SaveChangesAsync();
+    //    }
+    //}
+    //public async Task AddOrderDetailAsync(OrderDetail orderDetail)
+    //{
+    //    _context.OrderDetails.Add(orderDetail);
+    //    await _context.SaveChangesAsync();
+
+    //    // Cập nhật SoldCount cho món ăn
+    //    await UpdateSoldCountAsync(orderDetail.FoodId);
+    //}
+
+
 
 }

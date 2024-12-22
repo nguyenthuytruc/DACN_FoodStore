@@ -144,5 +144,19 @@ namespace FoodStore.Controllers
 
             return "/images/" + image.FileName; // Return relative path
         }
+       
+        //moi them
+        
+        
+        [HttpGet("best-selling")]
+        public async Task<ActionResult<IEnumerable<Food>>> GetBestSellingFoods()
+        {
+            var foods = await _foodRepository.GetAllAsync();
+            var bestSellingFoods = foods
+                .OrderByDescending(f => f.SoldCount)
+                .Take(5); // Lấy 10 món bán chạy nhất
+            return Ok(_mapper.Map<List<FoodDTO>>(bestSellingFoods));
+        }
+
     }
 }

@@ -33,7 +33,55 @@ namespace FoodStore.Areas.Cashier.Controllers
             }
             return View(htttoan);
         }
-        
 
+        [HttpGet]
+        public async Task<IActionResult> Update(int id)
+        {
+
+            var htttoan = await _htttoanRepository.GetByIdAsync(id);
+            if (htttoan == null)
+            {
+                return NotFound();
+            }
+            return View(htttoan);
+        }
+        // Xử lý cập nhật bàn
+        [HttpPost]
+        public async Task<IActionResult> Update(int id, Payment httt)
+        {
+            if (id != httt.Id)
+            {
+                return NotFound();
+            }
+            if (!ModelState.IsValid)
+            {
+                await _htttoanRepository.UpdateAsync(httt);
+                return RedirectToAction(nameof(Index));
+            }
+            return View(httt);
+        }
+        public async Task<IActionResult> Delete(int id)
+        {
+            var htttoan = await _htttoanRepository.GetByIdAsync(id);
+            if (htttoan == null)
+            {
+                return NotFound();
+            }
+            return View(htttoan);
+        }
+        // Xử lý xóa sản phẩm
+        [HttpPost]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var htttoan = await _htttoanRepository.GetByIdAsync(id);
+            if (htttoan != null)
+            {
+                // Xóa bản ghi khỏi cơ sở dữ liệu
+                await _htttoanRepository.DeleteAsync(id);
+            }
+
+            // Redirect về action Index
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

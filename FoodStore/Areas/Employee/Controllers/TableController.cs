@@ -1,10 +1,13 @@
 ﻿using FoodStore.Models;
 using FoodStore.Repositories;
+using FoodStore.Services;
 using IronBarCode;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using NuGet.DependencyResolver;
+using Supabase.Storage;
 using System.Security.Claims;
 
 namespace FoodStore.Areas.Employee.Controllers
@@ -14,11 +17,15 @@ namespace FoodStore.Areas.Employee.Controllers
     public class TableController : Controller
     {
         private readonly ITableRepository _banRepository;
+        private readonly IQRCodeRepository _qrRepository;
+        private readonly ISupabaseService _supabase;
         private readonly ApplicationDbContext _context;
-        public TableController(ITableRepository banRepository, ApplicationDbContext context)
+        public TableController(ITableRepository banRepository, IQRCodeRepository qrRepository, ISupabaseService supabase, ApplicationDbContext context)
         {
             _banRepository = banRepository;
             _context = context;
+            _qrRepository = qrRepository;
+            _supabase = supabase;
         }
         public async Task<IActionResult> Index()
         {
@@ -31,7 +38,7 @@ namespace FoodStore.Areas.Employee.Controllers
         {
             // Thực hiện thêm bàn mới vào cơ sở dữ liệu
             var table = await _banRepository.AddAsync();
-                GenerateQR(table.Id);
+            await GenerateNewQRAsync(table.Id);
                 return RedirectToAction("Index");
         } 
         public async Task<IActionResult> Display(int id)
@@ -82,20 +89,119 @@ namespace FoodStore.Areas.Employee.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
-        private void GenerateQR(int idTable)
+
+        [HttpPost]
+        public async Task<IActionResult> ReloadQR(int idTable)
         {
-            string url = "http://nguyenthuytruc-001-site1.dtempurl.com/customer/order/" + idTable;
-            string path = "wwwroot/images/QRTable/";
-            string fileName = idTable.ToString() + ".png";
-            // Tạo mã QR từ URL được cung cấp
+            var ban = await _banRepository.GetByIdAsync(idTable);
+            await GenerateQRAsync(idTable);
+            return RedirectToAction("Display", new { id = idTable });
+        }
+
+
+
+        private async Task GenerateQRAsync(int idTable)
+        {
+            string key = Guid.NewGuid().ToString();
+            string url = $"http://localhost:5173/order/{idTable}/{key}";
+            string fileName = $"{idTable}.png";
+
+           
             GeneratedBarcode barcode = QRCodeWriter.CreateQrCode(url, 250);
             barcode.SetMargins(10);
 
-            barcode.SaveAsImage(path + fileName);
+            
+            string tempPath = Path.GetTempFileName();
+            barcode.SaveAsImage(tempPath);
 
-            Path.Combine(path, fileName);
+       
+            byte[] fileBytes = System.IO.File.ReadAllBytes(tempPath);
+
+            var storage = _supabase.GetClient().Storage;
+            var bucket = storage.From("QRTable"); 
+            string supabasePath = $"{fileName}";
+         
+            try
+            {
+                var deleteResponse = await storage.From("QRTable").Remove(supabasePath);
+
+                var response = await storage
+                    .From("QRTable")
+                    .Update(fileBytes, supabasePath);
+
+                   
+            }
+            catch (Exception ex)
+            {
+             
+                throw new Exception($"Error uploading file to Supabase: {ex.Message}");
+            }
+            await _qrRepository.UpdateQrStatusBefore(idTable);
+
+           
+            QRCode qrCode = new QRCode
+            {
+                Url = url,
+                Status = false,
+                ImagePath = $"qr-codes/{fileName}", 
+                Key = key,
+                IdTable = idTable,
+            };
+
+            await _qrRepository.AddQRCodeAsync(qrCode);
+
+        }
+
+        private async Task GenerateNewQRAsync(int idTable)
+        {
+            string key = Guid.NewGuid().ToString();
+            string url = $"http://localhost:5173/order/{idTable}/{key}";
+            string fileName = $"{idTable}.png";
+
+           
+            GeneratedBarcode barcode = QRCodeWriter.CreateQrCode(url, 250);
+            barcode.SetMargins(10);
+
+            
+            string tempPath = Path.GetTempFileName();
+            barcode.SaveAsImage(tempPath);
+
+          
+            byte[] fileBytes = System.IO.File.ReadAllBytes(tempPath);
+
+            var storage = _supabase.GetClient().Storage;
+            var bucket = storage.From("QRTable"); // Replace with your bucket name
+            string supabasePath = $"{fileName}";
+           
+            try
+            {
+                var response = await storage
+                    .From("QRTable")
+                    .Upload(fileBytes, supabasePath);
+            }
+            catch (Exception ex)
+            {
+                
+                throw new Exception($"Error uploading file to Supabase: {ex.Message}");
+            }
+
+
+            
+            QRCode qrCode = new QRCode
+            {
+                Url = url,
+                Status = false,
+                ImagePath = $"qr-codes/{fileName}", 
+                Key = key,
+                IdTable = idTable,
+            };
+
+            await _qrRepository.AddQRCodeAsync(qrCode);
 
         }
     }
 }
+
+
+
 
