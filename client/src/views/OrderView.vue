@@ -3,9 +3,11 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axiosInstance from '../config/axios.js';
 import { useToast } from "vue-toastification";
+import BestSellingFoods from "./BestSellingFoods.vue";
 const route = useRoute();
-const router = useRouter();
 const idTable = ref(route.params['idTable']);
+const key = ref(route.params['key']);
+
 const listFood = ref([]);
 const listCategory = ref([]);
 const selectedCategory = ref(null);
@@ -15,12 +17,32 @@ const toast = useToast();
 // Hàm lấy danh sách món ăn và danh mục từ API
 onMounted(async () => {
   try {
-    const response = await axiosInstance.get('/food');
-    const categoryRes = await axiosInstance.get('/FoodCategory');
-    listFood.value = response.data.$values;
-    listCategory.value = categoryRes.data.$values;
+	const checkKey = await axiosInstance.get(`/qrcode/check/${key.value}`);
+	console.log(checkKey);
+	if (checkKey.data.accept) {
+		sessionStorage.setItem('keyOrder', key.value)
+		const response = await axiosInstance.get('/food');
+    	const categoryRes = await axiosInstance.get('/FoodCategory');
+    	listFood.value = response.data.$values;
+    	listCategory.value = categoryRes.data.$values;
+	}
   } catch (error) {
     console.error("Error fetching food data:", error);
+	window.location = "/access-denied"
+	toast.error("Không thể truy cập vào bàn! ", {
+			position: "bottom-left",
+			timeout: 1500,
+			closeOnClick: true,
+			pauseOnFocusLoss: true,
+			pauseOnHover: true,
+			draggable: true,
+			draggablePercent: 0.42,
+			showCloseButtonOnHover: false,
+			hideProgressBar: true,
+			closeButton: "button",
+			icon: true,
+			rtl: false
+		});
   }
 });
 
@@ -85,6 +107,12 @@ async function searchFood() {
   }, 2000);
 
 }
+
+function formatPrice(price) {
+      // Định dạng giá tiền theo VND
+      return price.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+};
+
 </script>
 
 <template>
@@ -111,6 +139,8 @@ async function searchFood() {
 				</router-link>
 			</div>
 			<div class="order--main">
+				<BestSellingFoods />
+				<h5>Loại món ăn</h5>
 				<div class="list--category">
 					<span
 						@click="selectCategory(null)"
@@ -138,7 +168,7 @@ async function searchFood() {
 							alt="Food Image"
 							class="food-image" />
 						<h5>{{ food.name }}</h5>
-						<p>{{ food.price }} VND</p>
+						<p>{{ formatPrice(food.price) }}</p>
 						<button
 							class="btn btn-sm btn-primary w-50"
 							@click="addToCart(food.id)">
@@ -154,8 +184,10 @@ async function searchFood() {
 </template>
 
 <style scoped>
+
+
 .order--wrapper {
-	padding: 16px;
+	padding: 8px;
 }
 
 .order--header {
@@ -191,13 +223,16 @@ async function searchFood() {
 }
 
 .food h5 {
-	font-size: 1.1em;
-	margin-bottom: 8px;
+	font-size: 1em;
+	color: #555;
+	padding: 4px 0;
+	height: 25px;
 }
 
 .food p {
 	font-size: 1em;
 	color: #555;
+	padding-top: 10%;
 }
 
 .food button {

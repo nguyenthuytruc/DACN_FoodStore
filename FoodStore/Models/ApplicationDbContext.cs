@@ -19,6 +19,9 @@ namespace FoodStore.Models
 
         public DbSet<Ingredients> Ingredients { get; set; }
         public DbSet<FoodIngredient> FoodIngredient { get; set; }
+        public DbSet<QRCode> QRCodes { get; set; }
+        public DbSet<Buffet> Buffets { get; set; }
+        public DbSet<BuffetDetail> BuffetDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +43,21 @@ namespace FoodStore.Models
                 .HasOne(od => od.Order)
                 .WithMany(o => o.OrderDetails)
                 .HasForeignKey(od => od.OrderId);
+
+
+            // Thiết lập quan hệ giữa Buffet và BuffetDetail
+            modelBuilder.Entity<BuffetDetail>()
+                .HasOne(bd => bd.Buffet)
+                .WithMany(b => b.BuffetDetails)
+                .HasForeignKey(bd => bd.BuffetId);
+
+            // Thiết lập quan hệ giữa Food và BuffetDetail
+            modelBuilder.Entity<BuffetDetail>()
+                .HasOne(bd => bd.Food)
+                .WithMany(f => f.BuffetDetails)
+                .HasForeignKey(bd => bd.FoodId);
+
+
 
             base.OnModelCreating(modelBuilder);
         }

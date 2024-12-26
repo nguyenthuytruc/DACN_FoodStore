@@ -72,7 +72,7 @@ namespace FoodStore.Areas.Employee.Controllers
             }
             if (!ModelState.IsValid)
             {
-                _htttoanRepository.UpdateAsync(httt);
+                await _htttoanRepository.UpdateAsync(httt);
                 return RedirectToAction(nameof(Index));
             }
             return View(httt);

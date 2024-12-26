@@ -10,5 +10,6 @@ namespace FoodStore.Repositories
         Task AddAsync(Food food);
         Task UpdateAsync(Food food);
         Task DeleteAsync(int id);
+        Task<IEnumerable<Food>> GetBestSellingFoodsAsync(int limit);
     }
 }

@@ -31,7 +31,7 @@ namespace FoodStore.Controllers
         [HttpGet("/{id:int}")]
         public async Task<ActionResult> GetById(int id)
         {
-            var order = _orderRepository.GetOrderById(id);
+            var order = await _orderRepository.GetOrderById(id);
             if (order == null)
             {
                 return NotFound();
