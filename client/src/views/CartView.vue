@@ -60,7 +60,7 @@
     <div class="total-price">
         <span>Tổng Cộng:</span>
         <span class="mx-2">
-          {{ formatPrice(cartItems.reduce((total, item) => total + item.price * item.quantity, 0)) }}
+          {{ formatPrice(orderHistory.reduce((total, item) => total + item.price * item.quantity, 0)) }}
         </span>
       </div>
 </ul>
