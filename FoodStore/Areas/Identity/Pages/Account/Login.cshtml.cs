@@ -126,7 +126,7 @@ namespace FoodStore.Areas.Identity.Pages.Account
                         }
                         else if (await _userManager.IsInRoleAsync(user, SD.Role_Employee))
                         {
-                            return Redirect("/Employee/Home/Index");
+                            return Redirect("/Employee/Table/Index");
                         }
                         else if (await _userManager.IsInRoleAsync(user, SD.Role_Kitchen))
                         {

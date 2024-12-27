@@ -31,9 +31,7 @@
                                 </p>
                             </div>
                             <div class="item-table--actions d-flex align-items-center justify-content-around mt-3">
-                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modal-@table.Id">
-                                    <i class="bi bi-trash"></i> Xóa
-                                </button>
+                               
                                 <a href="/customer/order/@table.Id" class="btn btn-outline-primary">
                                     <i class="bi bi-cart"></i> Order
                                 </a>
@@ -43,26 +41,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal fade" id="modal-@table.Id" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title text-danger" id="exampleModalLabel">Xác nhận xóa</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    Bạn có chắc chắn muốn xóa bàn này không?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                    <form action="/Employee/Table/DeleteConfirmed" method="post">
-                                        <input type="hidden" name="id" value="@table.Id">
-                                        <button type="submit" class="btn btn-danger">Đồng ý</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                   
                 }
             </div>
         </div>
