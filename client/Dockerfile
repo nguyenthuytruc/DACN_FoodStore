@@ -1,24 +1,39 @@
-# Sử dụng Node.js để build ứng dụng Vue.js
-FROM node:20
+# -------------------------------------------
+# STAGE 1: Build
+# -------------------------------------------
+FROM node:20 AS build
 
 # Đặt thư mục làm việc
 WORKDIR /app
 
-# Sao chép package.json và package-lock.json
+# Sao chép file package.json và package-lock.json
 COPY package*.json ./
 
-# Cài đặt phụ thuộc
+# Cài đặt dependencies
 RUN npm install
 
-# Sao chép mã nguồn
+# Sao chép toàn bộ mã nguồn
 COPY . .
 
-# Build ứng dụng
+# Build ứng dụng (tạo ra thư mục dist)
 RUN npm run build
 
-# Mở cổng để chạy server
+
+# -------------------------------------------
+# STAGE 2: Production
+# -------------------------------------------
+FROM node:20 AS production
+
+WORKDIR /app
+
+# Copy thư mục dist từ stage build sang
+COPY --from=build /app/dist /app/dist
+
+# Cài đặt serve để chạy file tĩnh
+RUN npm install -g serve
+
+# Expose cổng 3000
 EXPOSE 3000
 
-# Khởi động ứng dụng
-CMD ["npm", "run", "dev"]
-
+# Dùng serve để chạy thư mục dist ở cổng 3000
+CMD ["serve", "-s", "dist", "-l", "3000"]
