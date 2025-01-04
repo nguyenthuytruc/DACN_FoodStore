@@ -1,0 +1,44 @@
+version: '3.9'
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./FoodStore
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./FoodStore:/app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=FoodStoreDB;User=sa;Password=yourStrong(!)Password
+    depends_on:
+      - db
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: foodstore_db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=yourStrong(!)Password
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+volumes:
+  mssql_data:
+
