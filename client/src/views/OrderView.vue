@@ -164,7 +164,7 @@ function formatPrice(price) {
 				<div class="list--food">
 					<div v-for="food in listFood" :key="food.id" class="food">
 						<img
-							:src="`https://localhost:7093/${food.image}`"
+							:src="`http://localhost:7093/${food.image}`"
 							alt="Food Image"
 							class="food-image" />
 						<h5>{{ food.name }}</h5>
