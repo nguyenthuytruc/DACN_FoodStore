@@ -41,6 +41,18 @@ services:
     volumes:
       - mssql_data:/var/opt/mssql
 
+  init_db:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - db
+    environment:
+      SA_PASSWORD: "yourStrong(!)Password"
+    volumes:
+      # Mount file scriptdb.sql vào container init_db
+      - ./scriptdb.sql:/scripts/scriptdb.sql
+    # Lệnh chạy: chờ khoảng 20 giây cho DB khởi động, rồi chạy sqlcmd để thực thi script
+    command: /bin/bash -c "sleep 20 && /opt/mssql-tools/bin/sqlcmd -S db -U sa -P 'yourStrong(!)Password' -i /scripts/scriptdb.sql"
+
 volumes:
   mssql_data:
 
