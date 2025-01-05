@@ -4,7 +4,7 @@
     <div class="scroll-wrapper">
       <ul class="food-list">
         <li v-for="food in bestSellingFoods" :key="food.id" class="food-item">
-          <img :src="`http://localhost:7093/${food.image}`" :alt="food.name" class="food-image" />
+          <img :src="`https://localhost:7093/${food.image}`" :alt="food.name" class="food-image" />
           <div class="food-info">
             <h2>{{ food.name }}</h2>
             <p>Giá: {{ formatPrice(food.price) }}</p>
